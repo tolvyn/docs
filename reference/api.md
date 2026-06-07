@@ -394,7 +394,7 @@ All require JWT.
 | `scope_id` | string (nullable) | when applicable | Team ID / service name (NULL for `organization`; for `agent` use `agent_name`) |
 | `agent_name` | string | when `scope_type=agent` | The agent identifier (UUID is derived from this) |
 | `amount_usd` | number | yes | Must be > 0 |
-| `period` | string | no | `daily`, `weekly`, `monthly` (default), `yearly` |
+| `period` | string | no | `daily`, `weekly`, or `monthly` (default) |
 | `mode` | string | no | `soft` (default — alert only), `hard` (block at the proxy), or `approval` (block at the cap but record a pending approval an admin can grant) |
 
 ```bash
