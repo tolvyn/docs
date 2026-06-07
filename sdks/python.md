@@ -377,7 +377,7 @@ There is no `AsyncGoogle` class — `google-generativeai` uses a process-global 
 | 0.1.7 | Current. Provider-aware fail-open — direct fallback uses the correct per-provider auth header (e.g. `x-api-key` for Anthropic) and strips any inbound TOLVYN auth so the TOLVYN key is never sent to a provider. |
 | 0.1.6 | Lazy provider imports — importing one provider no longer requires the others' optional SDKs; a friendly error is raised if a needed provider package is missing. |
 | 0.1.5 | Google `UserWarning` on `fail_open=True`; multi-instance `UserWarning`. |
-| 0.1.4 | Fail-open URL composition fix (PY-02); deduplicate `_build_tolvyn_headers` to `_config.py` (PY-06); remove dead code (PY-04). |
+| 0.1.4 | Fail-open URL composition fix; deduplicate `_build_tolvyn_headers` to `_config.py`; remove dead code. |
 | 0.1.3 | OpenAI + Anthropic + Google. |
 
 The package is in early development. APIs may change between minor versions until 1.0.

@@ -16,11 +16,12 @@ The output is one reconciliation run per (provider, invoice month) pair. Each ru
 
 ## Supported providers and CSV formats
 
-The matcher joins invoice lines to TOLVYN's `requests` table by **normalized model family** (`internal/reconciliation/matcher.go:59`). Each provider parser strips dated/regional suffixes via `pricing.NormalizeModelFamily()` (e.g. `gpt-4o-2024-08-06` → `gpt-4o`).
+Reconciliation parses invoices for **OpenAI, Anthropic, and Google** only. **DeepSeek invoices are not yet parsed** — DeepSeek requests are still metered and proxied normally, but they cannot be reconciled against a DeepSeek invoice yet.
+
+The matcher joins invoice lines to TOLVYN's metered requests by **normalized model family**, stripping dated/regional suffixes (e.g. `gpt-4o-2024-08-06` → `gpt-4o`).
 
 ### OpenAI
 
-Parser: `internal/reconciliation/openai_parser.go`.
 
 Expected CSV columns (case-insensitive, required marked with †):
 
@@ -44,7 +45,6 @@ Rows are aggregated by normalized model family — multiple lines for `gpt-4o-20
 
 ### Anthropic
 
-Parser: `internal/reconciliation/anthropic_parser.go`.
 
 Expected CSV columns:
 
@@ -67,7 +67,7 @@ Rows with `Cost (USD) = 0` are skipped. Token columns are summed into a single t
 
 ### Google
 
-Parser: `internal/reconciliation/google_parser.go`. Two formats are auto-detected based on the header row.
+Two formats are auto-detected based on the header row.
 
 **Format A — AI Studio export:**
 
@@ -159,7 +159,6 @@ curl -X POST https://api.tolvyn.io/v1/reconciliation/upload \
 
 ### Gap formula
 
-From `matcher.go:106`:
 
 ```
 Gap (USD) = Invoice cost (USD) − Tolvyn cost (USD)
@@ -187,7 +186,6 @@ Each model family in the invoice gets one of three statuses:
 
 ## Shadow AI detection
 
-From `matcher.go:107-110`:
 
 ```go
 if lr.InvoiceCostUSD > 0 && lr.TolvynCostUSD == 0 {
@@ -256,7 +254,7 @@ MONTH    PROVIDER   INV TOTAL    GAP        SHADOW AI   FILE
 
 ### Match by model family, not exact model ID
 
-The matcher joins on `model_family`, not `model_id` (`matcher.go:59`). This means:
+The matcher joins on `model_family`, not `model_id`. This means:
 
 - Invoice lines `gpt-4o-2024-08-06` and `gpt-4o-2024-05-13` collapse into one tenant-side row for `gpt-4o`
 - TOLVYN requests with `model_family = gpt-4o` but a different exact `model_id` still match
@@ -270,7 +268,7 @@ Reconciliation depends on `pricing.NormalizeModelFamily()` producing the same fa
 - A provider releases a new model not yet in TOLVYN's normalization regex (`gpt-5-2026-06-15` would normalize differently from any historical request)
 - A provider changes the format of a model identifier (e.g. drops the date suffix entirely)
 
-If you see `unmatched` lines for models you definitely used, file a [pricing change](../features/pricing-changes.md) or check the model normalization in `internal/pricing/models.go`.
+If you see `unmatched` lines for models you definitely used, file a [pricing change](../features/pricing-changes.md) or check the model normalization in the source.
 
 ### One reconciliation per (provider, month)
 

@@ -379,7 +379,7 @@ TypeScript with `"module": "commonjs"` or `"node16"`/`"nodenext"` works without 
 | 1.0.8 | Current. Provider-aware fail-open — direct fallback uses the correct per-provider auth header and strips inbound TOLVYN auth; Google proxy URL double-slash fix. |
 | 1.0.7 | Release with rewritten README. |
 | 1.0.6 | Google fail-open functional; class renamed `TolvynGoogle` → `Google`; `@google/generative-ai` is now an optional peer dependency. |
-| 1.0.5 | Fail-open URL composition fix (ND-02); deduplicate `makeFailOpenFetch` so client.ts imports from failopen.ts (ND-03); trailing slash on Google proxy URL (ND-07). |
+| 1.0.5 | Fail-open URL composition fix; deduplicate `makeFailOpenFetch` so client.ts imports from failopen.ts; trailing slash on Google proxy URL. |
 | 1.0.4 | OpenAI + Anthropic + Google. Node 18+. Dual ESM/CJS build. |
 
 The Node SDK reached `1.0` ahead of the Python SDK (currently `0.1.7`) — the underlying provider SDKs (`openai`, `@anthropic-ai/sdk`) have stable APIs that gave Node a faster path to a stable public surface.

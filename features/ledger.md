@@ -24,7 +24,7 @@ The TOLVYN ledger is built on the premise that AI spend has crossed the threshol
 
 ### Genesis block
 
-Each tenant's chain begins with a synthetic predecessor: `previous_hash` of the **very first record** is `SHA-256(tenantID)` rendered as hex. The genesis hash anchors the chain — verifying from sequence 1 requires re-deriving it (`ledger.go:81-84`):
+Each tenant's chain begins with a synthetic predecessor: `previous_hash` of the **very first record** is `SHA-256(tenantID)` rendered as hex. The genesis hash anchors the chain — verifying from sequence 1 requires re-deriving it:
 
 ```go
 func genesisHash(tenantID string) string {
@@ -37,7 +37,7 @@ Two tenants that happened to start with the same first proxied request would sti
 
 ### Record structure
 
-Every ledger row's `record_hash` is `SHA-256` of a **canonical JSON serialization** of this struct (`ledger.go:62-77`):
+Every ledger row's `record_hash` is `SHA-256` of a **canonical JSON serialization** of this struct:
 
 ```json
 {
@@ -75,7 +75,7 @@ Any tampering with record `K` produces a new `record_hash[K]`. That breaks the c
 
 ### HMAC signing
 
-`record_hash` is then signed with `HMAC-SHA256` keyed on `TOLVYN_HMAC_SECRET` (`ledger.go:97-101`):
+`record_hash` is then signed with `HMAC-SHA256` keyed on the signing secret:
 
 ```go
 mac := hmac.New(sha256.New, secret)
@@ -85,13 +85,13 @@ hmacSignature := hex.EncodeToString(mac.Sum(nil))
 
 The HMAC adds a second layer of defense: even an attacker with direct database write access cannot forge a valid record without also knowing the secret. The SHA-256 chain catches accidental or external tampering; the HMAC catches insider tampering. Different threat models, both addressed.
 
-`TOLVYN_HMAC_SECRET` must be at least 32 bytes. The server refuses to start without it set.
+The signing secret must be at least 32 bytes. The server refuses to start without it set.
 
 ### Advisory lock for sequence integrity
 
 Sequence numbers must be gap-free per tenant for verification to work. Concurrent `AppendRecord` calls for the same tenant could otherwise race and produce duplicates or gaps.
 
-The fix: a per-tenant PostgreSQL advisory lock (`ledger.go:127-130`):
+The fix: a per-tenant PostgreSQL advisory lock:
 
 ```go
 lockKey := advisoryLockKey(tenantID)  // first 8 bytes of SHA-256(tenantID) as int64
@@ -171,13 +171,13 @@ curl https://api.tolvyn.io/v1/ledger/verify \
 - `seq N: record_hash mismatch` — re-deriving from the stored payload produces a different hash (the payload was edited after insertion)
 - `seq N: HMAC mismatch` — record_hash is consistent but the HMAC doesn't verify (signing key changed, or HMAC was forged with the wrong secret)
 
-Anything other than `valid: true` means the chain has been compromised at or after `first_invalid_sequence`. Investigate immediately — at minimum, restore from a verified backup and rotate `TOLVYN_HMAC_SECRET`.
+Anything other than `valid: true` means the chain has been compromised at or after `first_invalid_sequence`. Investigate immediately — at minimum, restore from a verified backup and rotate the signing secret.
 
 ---
 
 ## Exporting the ledger
 
-`GET /v1/ledger?format=csv` streams every column to a CSV file. Includes `record_hash`, `previous_hash`, and `hmac_signature` so the export can be verified **offline** against the server's `TOLVYN_HMAC_SECRET` without ever talking to TOLVYN again.
+`GET /v1/ledger?format=csv` streams every column to a CSV file. Includes `record_hash`, `previous_hash`, and `hmac_signature` so the export can be verified **offline** against the server's signing secret without ever talking to TOLVYN again.
 
 ```bash
 curl "https://api.tolvyn.io/v1/ledger?format=csv&from=2026-05-01T00:00:00Z&to=2026-06-01T00:00:00Z" \
@@ -211,7 +211,7 @@ For auditors: hand them the CSV + the HMAC secret in a separate channel. They ca
 - **The content of prompts or responses.** TOLVYN does not store prompt or response text. The ledger proves what model was called and what it cost, not what was said.
 - **That the provider's invoice matches.** TOLVYN's view is the proxy's view. Requests that bypassed the proxy never reach the ledger. Use [Reconciliation](reconciliation.md) to spot-check against provider invoices.
 - **The fairness of provider pricing.** The ledger records what TOLVYN was told the cost was at the time of metering, using prices in effect at that moment. It does not validate whether the provider charged correctly.
-- **That `TOLVYN_HMAC_SECRET` was never leaked.** Rotation invalidates the HMAC of all prior records (they no longer verify with the new secret). Don't rotate the HMAC secret without an explicit re-signing plan, or you destroy your own audit trail.
+- **That the signing secret was never leaked.** Rotation invalidates the HMAC of all prior records (they no longer verify with the new secret). Don't rotate the HMAC secret without an explicit re-signing plan, or you destroy your own audit trail.
 
 ---
 
@@ -219,7 +219,7 @@ For auditors: hand them the CSV + the HMAC secret in a separate channel. They ca
 
 ### Audit evidence
 
-For an external auditor (SOC 2, ISO 27001, financial audit): export the ledger CSV for the audit period, provide the HMAC secret over a separate channel, point them at the open-source verification logic in `internal/ledger/ledger.go`. The auditor produces independent verification without trusting your dashboard.
+For an external auditor (SOC 2, ISO 27001, financial audit): export the ledger CSV for the audit period, provide the HMAC secret over a separate channel, point them at the open-source verification logic. The auditor produces independent verification without trusting your dashboard.
 
 ### CFO reporting
 

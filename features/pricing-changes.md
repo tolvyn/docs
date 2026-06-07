@@ -21,7 +21,7 @@ Pricing Changes is the answer to the second case.
 
 ### A. Automated scraper
 
-A background goroutine runs once per day at **02:30 UTC** (`internal/pricing/scraper/scheduler.go:37-48`). It reads each provider's public pricing page, parses for known model identifiers, and compares against the prices currently in the `models` table.
+A background goroutine runs once per day at **02:30 UTC**. It reads each provider's public pricing page, parses for known model identifiers, and compares against the prices currently in the `models` table.
 
 When a price differs, a row is inserted into `pricing_candidates` with `status = 'pending'`:
 
@@ -59,7 +59,7 @@ curl -X POST https://api.tolvyn.io/v1/operator/models/changes \
   }'
 ```
 
-This path **immediately notifies affected tenants** in a background goroutine (`operator.go:746-754`).
+This path **immediately notifies affected tenants** in a background goroutine.
 
 ### C. Open-source pricing data
 
@@ -86,7 +86,7 @@ For scraper-detected candidates (path A):
 
 ### What approval does
 
-From `HandleOperatorApproveCandidate` (`operator.go:925-1047`), all inside a single transaction:
+From `HandleOperatorApproveCandidate`, all inside a single transaction:
 
 1. Marks the candidate row as `approved` with `approved_at` and `approved_by = 'operator'`.
 2. Updates the `models` table: writes the new value into `pricing_input_per_mtok`, `pricing_output_per_mtok`, or `pricing_cached_per_mtok` depending on `field_changed`. Sets `pricing_updated_at = now()`.
@@ -103,13 +103,13 @@ The `-1 millisecond` trick on `effective_to` ensures the old row closes strictly
 
 ### Both paths notify customers
 
-Both paths — manual operator entry and scraper-candidate approval — trigger customer notifications. `HandleOperatorApproveCandidate` calls `alert.NotifyPricingChange` in a goroutine after committing the price update (BE-01 fix), matching the manual-entry path's behavior.
+Both paths — manual operator entry and scraper-candidate approval — trigger customer notifications. The approval path sends the pricing-change notification after committing the price update, matching the manual-entry path's behavior.
 
 ---
 
 ## Customer notifications
 
-When a pricing change is registered via the manual path (`POST /v1/operator/models/changes`), `alert.NotifyPricingChange` (`internal/alert/pricing_change.go`) runs asynchronously:
+When a pricing change is registered via the manual path (`POST /v1/operator/models/changes`), `alert.NotifyPricingChange` runs asynchronously:
 
 1. Queries the `requests` table for every tenant that used the affected `model_family` in the last 30 days, with their token volumes.
 2. For each tenant, computes a per-tenant impact estimate:
@@ -193,7 +193,7 @@ WHERE  model_id  = $1
 LIMIT  1
 ```
 
-Used by `internal/pricing/calculator.go` `CalculateCostAt(modelID, fieldName, timestamp)`. This is how Reconciliation can correctly compute a March 2024 cost using March 2024 prices, even after the price changed in April.
+This is how Reconciliation can correctly compute a March 2024 cost using March 2024 prices, even after the price changed in April.
 
 ### Migration-time backfill
 

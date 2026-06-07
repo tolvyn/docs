@@ -283,7 +283,7 @@ Source: `tolvyn.ShouldNotFailOpen()`. The SDK does **not** fall back when the st
 
 ### Fallback URL composition
 
-Unlike the Python and Node SDKs, the Go SDK **strips the `/v1/proxy/{provider}` prefix from the request path** before building the fallback URL (`tolvyn.go:184-197`):
+Unlike the Python and Node SDKs, the Go SDK **strips the `/v1/proxy/{provider}` prefix from the request path** before building the fallback URL:
 
 ```go
 path := req.URL.Path
@@ -396,7 +396,7 @@ The Go Google sub-package is closer to OpenAI/Anthropic in shape than the Python
 |---|---|
 | v0.1.4 | Current. Provider-aware fail-open — direct fallback uses the correct per-provider auth header and strips inbound TOLVYN auth so the TOLVYN key is never sent to a provider. |
 | v0.1.3 | Google fail-open transport; `Defaults()` uses `log.Fatal` instead of `panic`; trailing-slash audit. |
-| v0.1.2 | OpenAI fail-open URL fix (GO-01); `Version` constant updated; `BoolPtr` removed (GO-05). |
+| v0.1.2 | OpenAI fail-open URL fix; `Version` constant updated; `BoolPtr` removed. |
 | v0.1.1 | Renamed `FailOpen bool` → `DisableFailOpen bool` so the zero value enables fail-open by default. |
 | v0.1.0 | Initial release. OpenAI + Anthropic + Google. |
 

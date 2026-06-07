@@ -1,6 +1,6 @@
 # REST API Reference
 
-Every endpoint that TOLVYN exposes, sourced from `cmd/tolvyn-server/main.go` route registrations and the corresponding handlers in `internal/api/`.
+Every endpoint that TOLVYN exposes.
 
 ---
 
@@ -390,8 +390,8 @@ All require JWT.
 
 | Field | Type | Required | Description |
 |---|---|---|---|
-| `scope_type` | string | yes | `organization`, `team`, `service`, `user`, `end_customer`, `agent`, or `all` |
-| `scope_id` | string (nullable) | when applicable | Team ID, user ID, etc. |
+| `scope_type` | string | no | `organization` (default), `team`, `service`, or `agent` — the scopes the budget resolver enforces |
+| `scope_id` | string (nullable) | when applicable | Team ID / service name (NULL for `organization`; for `agent` use `agent_name`) |
 | `agent_name` | string | when `scope_type=agent` | The agent identifier (UUID is derived from this) |
 | `amount_usd` | number | yes | Must be > 0 |
 | `period` | string | no | `daily`, `weekly`, `monthly` (default), `yearly` |

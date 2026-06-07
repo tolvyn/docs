@@ -88,7 +88,7 @@ An agent budget is a row in the `budgets` table with `scope_type = 'agent'` and 
 | Hard mode | Yes (HTTP 429) | Yes | Yes |
 | Soft mode | Yes (alerts) | Yes | Yes |
 
-Agent budgets are checked **before** team and service budgets in the resolver's most-specific-first ordering (`internal/budget/resolver.go:283`). A request to a service inside a team will have agent → service → team → organization budgets all evaluated; the agent is the tightest scope and is most likely to trigger first.
+Agent budgets are checked **before** team and service budgets in the resolver's most-specific-first ordering. A request to a service inside a team will have agent → service → team → organization budgets all evaluated; the agent is the tightest scope and is most likely to trigger first.
 
 ---
 
@@ -96,7 +96,6 @@ Agent budgets are checked **before** team and service budgets in the resolver's 
 
 The `scope_id` column is UUID-typed for foreign-key compatibility with teams and services. Agents don't have a table to draw real UUIDs from, so TOLVYN derives a deterministic UUID from the agent name.
 
-From `internal/budget/resolver.go:17-36`:
 
 ```go
 // AgentNameToUUID converts an agent name string to a deterministic UUID v5
@@ -148,7 +147,7 @@ uuid.uuid5(uuid.NAMESPACE_DNS, "claude-code")
 4. Pick period (daily / weekly / monthly) and mode (soft / hard)
 5. Save
 
-The dashboard displays the agent name in the budget list (not the derived UUID) — the `settings` JSONB column stores `{"agent_name": "<name>"}` for display purposes (`internal/api/client.go:1149-1159`).
+The dashboard displays the agent name in the budget list (not the derived UUID) — the `settings` JSONB column stores `{"agent_name": "<name>"}` for display purposes.
 
 ### CLI
 
@@ -161,7 +160,7 @@ tolvyn budgets create \
   --mode hard
 ```
 
-CLI flags from `cmd/tolvyn-cli/cmd_budgets.go`:
+CLI flags:
 
 | Flag | Default | Notes |
 |---|---|---|
@@ -188,7 +187,7 @@ curl -X POST https://api.tolvyn.io/v1/budgets \
   }'
 ```
 
-Server-side: the handler validates that `agent_name` is non-empty (`client.go:1149-1153`), derives the UUID via `budget.AgentNameToUUID(*body.AgentName)`, stores it in `scope_id`, and writes `{"agent_name": "<name>"}` into `settings` (`client.go:1154-1158`).
+Server-side: the handler validates that `agent_name` is non-empty, derives the UUID via `budget.AgentNameToUUID(*body.AgentName)`, stores it in `scope_id`, and writes `{"agent_name": "<name>"}` into `settings`.
 
 Response:
 

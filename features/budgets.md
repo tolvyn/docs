@@ -35,7 +35,7 @@ When the proxy receives a request, it resolves all budgets matching the request'
 agent  >  service  >  team  >  organization
 ```
 
-Source: `internal/budget/resolver.go` — `sortBudgets()` uses the explicit ordering `{"agent": 0, "service": 1, "team": 2, "organization": 3}`.
+The resolver sorts applicable budgets by the explicit ordering agent (most specific) → service → team → organization.
 
 A request with team `backend`, service `summarizer`, and agent `claude-code` is checked against:
 
@@ -96,7 +96,7 @@ When `mode = "soft"`, the budget tracks spend and fires alerts at threshold cros
 
 ### Threshold levels
 
-From `internal/alert/threshold.go:16`:
+Threshold levels:
 
 ```go
 var thresholds = []int{50, 75, 90, 100}
@@ -183,7 +183,7 @@ The same principle runs throughout the proxy hot path: when in doubt due to an i
 | `weekly` | Monday 00:00:00 → Sunday 23:59:59 |
 | `monthly` | 1st of month 00:00:00 → last day of month 23:59:59 |
 
-Computed in `internal/budget/resolver.go` `periodStart()` / `periodEnd()`.
+Period bounds are computed in UTC.
 
 ### Auto-reset
 
@@ -252,7 +252,7 @@ tolvyn budgets create \
   --mode hard
 ```
 
-CLI flags from `cmd/tolvyn-cli/cmd_budgets.go`:
+CLI flags:
 
 | Flag | Default | Notes |
 |---|---|---|
@@ -270,7 +270,7 @@ CLI flags from `cmd/tolvyn-cli/cmd_budgets.go`:
 
 Agents are identified by the `X-Tolvyn-Agent` request header (or the `agent` SDK option). When you create an agent budget, the agent **name** is what you pass — the server derives a deterministic UUID and stores it in the `scope_id` column.
 
-From `internal/budget/resolver.go:17-36`:
+Agent names are converted to a deterministic UUID v5:
 
 ```go
 // AgentNameToUUID converts an agent name string to a deterministic UUID v5
@@ -303,7 +303,7 @@ At budget-resolution time, the proxy reads `X-Tolvyn-Agent`, runs the same UUID 
 | Purpose | Spend cap with running counter | Unconditional block |
 | What it tracks | `current_spend_microdollars` per period | Nothing — just a flag |
 | When it blocks | `mode=hard` AND `spend >= amount` | Always (while active) |
-| Order in proxy | After kill check (`proxy.go:296`) | First check (`proxy.go:261`) |
+| Order in proxy | Checked after the kill switch | First check |
 | HTTP response | `429 budget_exceeded` | `451 kill_switch_active` |
 | Auto-reset | Yes, on period rollover | No — must be deactivated manually |
 | Use for | Long-term cost control | Incident response, runaway agents |

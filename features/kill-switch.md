@@ -30,7 +30,6 @@ Use it for incident response: a runaway agent, a leaked API key, a service in a 
 | `agent` | Request's `X-Tolvyn-Agent` equals `scope_value` |
 | `api_key` | Request's TOLVYN API key prefix (first 12 chars) equals `scope_value` |
 
-Source: `internal/kill/state.go` `IsKilled()` and `internal/proxy/proxy.go:262-287`.
 
 ### Check order
 
@@ -71,7 +70,6 @@ The kill check is the **first** authorization gate after JWT validation and tena
 6. Forward to provider
 ```
 
-Source: `internal/proxy/proxy.go:261` (kill) vs `proxy.go:306` (budget).
 
 ### HTTP 451 response body
 
@@ -88,13 +86,13 @@ When the kill matches, the proxy returns:
 }
 ```
 
-Status: `451 Unavailable For Legal Reasons`. Source: `proxy.go:275-285`.
+Status: `451 Unavailable For Legal Reasons`.
 
 ---
 
 ## In-memory store
 
-For sub-millisecond proxy-path latency, kill switches are kept in an in-memory map keyed by tenant ID. Source: `internal/kill/state.go`.
+For sub-millisecond proxy-path latency, kill switches are kept in an in-memory map keyed by tenant ID.
 
 ### Startup
 
@@ -145,7 +143,7 @@ For tighter consistency, prefer the API — the in-memory store is updated synch
 tolvyn kill --scope team --target backend --reason "runaway agent"
 ```
 
-Flags from `cmd/tolvyn-cli/cmd_kill.go`:
+Flags:
 
 | Flag | Default | Description |
 |---|---|---|
@@ -265,7 +263,7 @@ The in-memory store is updated synchronously with the DB so subsequent requests 
 | Trigger | Active state | `current_spend >= amount` |
 | HTTP status | `451 Unavailable For Legal Reasons` | `429 Too Many Requests` |
 | Error code | `kill_switch_active` | `budget_exceeded` |
-| Order in proxy | First — `proxy.go:261` | After kill — `proxy.go:306` |
+| Order in proxy | First | After the kill-switch check |
 | State | In-memory + DB | DB only (read per request) |
 | Latency | Sub-ms | Single SELECT per request |
 | Auto-reset | Never | On period rollover |

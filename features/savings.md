@@ -15,13 +15,12 @@ The savings dashboard surfaces cost-reduction opportunities derived from your la
 | Atomic replace | Yes — non-dismissed findings deleted before each rerun |
 | Dismissed findings | Preserved forever — survive subsequent runs |
 
-Source: `internal/savings/analyzer.go` and `internal/savings/rules.go`.
 
 ---
 
 ## When analysis runs
 
-A background goroutine started at server boot (`analyzer.go:111-127`):
+A background goroutine started at server boot:
 
 ```go
 now := time.Now().UTC()
@@ -43,11 +42,10 @@ To trigger an immediate recompute outside the schedule, operators can call `POST
 
 ## Four savings rules
 
-All four run in order: `analyzeSmallTokenRequests`, `analyzeDuplicatePrompts`, `analyzeUnderutilizedCache`, `analyzeIdleModels` (`rules.go:13-18`). Findings from all rules are accumulated and inserted atomically.
+All four run in order: `analyzeSmallTokenRequests`, `analyzeDuplicatePrompts`, `analyzeUnderutilizedCache`, `analyzeIdleModels`. Findings from all rules are accumulated and inserted atomically.
 
 ### 1. `small_token_requests` — downgrade expensive models on short prompts
 
-Source: `analyzeSmallTokenRequests`.
 
 **Trigger criteria:**
 
@@ -59,7 +57,7 @@ Source: `analyzeSmallTokenRequests`.
 | Estimated monthly savings | ≥ $1.00 |
 | Model must be in the downgrade map | see below |
 
-**Hardcoded downgrade map** (`rules.go:28-39`):
+**Hardcoded downgrade map**:
 
 | Expensive model | Suggested cheaper alternative | Savings ratio |
 |---|---|---|
@@ -88,7 +86,6 @@ claude-haiku-4-5 would cost ~$12.40 instead of ~$49.60 — saving ~$37.20.
 
 ### 2. `duplicate_prompts` — cache redundant requests
 
-Source: `analyzeDuplicatePrompts`.
 
 **Trigger criteria:**
 
@@ -113,7 +110,6 @@ A prompt caching or request deduplication layer would save ~$42.80.
 
 ### 3. `underutilized_cache` — enable provider prompt caching
 
-Source: `analyzeUnderutilizedCache`.
 
 **Trigger criteria:**
 
@@ -124,7 +120,7 @@ Source: `analyzeUnderutilizedCache`.
 | Cache hit rate threshold | < 5% (`cached / input < 0.05`) |
 | Estimated monthly savings | ≥ $0.50 |
 
-**Savings estimate** (`rules.go:216-217`):
+**Savings estimate**:
 
 ```go
 estimatedInputCost := int64(float64(totalCost) * 0.65)
@@ -151,7 +147,6 @@ Google is excluded from this rule — its prompt caching mechanism is different 
 
 ### 4. `idle_model` — surface unused model allocations
 
-Source: `analyzeIdleModels`.
 
 **Trigger criteria:**
 
@@ -161,7 +156,7 @@ Source: `analyzeIdleModels`.
 | Model has had 0 requests in the last 30 days | Required |
 | Savings amount | `$0.00` |
 
-Idle-model findings carry **no dollar estimate** — the previous budget-share proxy metric was removed (BE-15) because it presented a fabricated number. The finding is still surfaced with the model name and idle period; only the misleading savings figure is gone.
+Idle-model findings carry **no dollar estimate** — the previous budget-share proxy metric was removed because it presented a fabricated number. The finding is still surfaced with the model name and idle period; only the misleading savings figure is gone.
 
 Example finding text:
 
@@ -208,13 +203,13 @@ curl -X POST https://api.tolvyn.io/v1/operator/savings/recompute \
   -H "Authorization: Bearer <operator-token>"
 ```
 
-This runs `RunAllTenants` immediately. Useful after a major code change in `rules.go` or after a backfill of `request_hash`.
+This runs `RunAllTenants` immediately. Useful after a major code change in the source or after a backfill of `request_hash`.
 
 ---
 
 ## Atomic-replace behavior
 
-At the start of each rerun, the analyzer (`analyzer.go:51-56`):
+At the start of each rerun, the analyzer:
 
 ```sql
 DELETE FROM savings_findings
