@@ -7,7 +7,7 @@ TOLVYN offers two integration modes. Pick one based on your reliability requirem
 | Capability | SDK mode | Proxy mode |
 |------------|----------|------------|
 | Setup | Install `tolvyn` package | Set `OPENAI_BASE_URL` env var |
-| Languages | Python, Node.js | Any |
+| Languages | Python, Node.js, Go | Any |
 | Fail-open (auto-fallback to provider direct) | ✅ Yes | ❌ No — request fails if TOLVYN is unreachable |
 | Latency overhead | <50ms | <50ms |
 | TOLVYN in critical path | No (fails open) | Yes |
@@ -80,6 +80,50 @@ When the SDK cannot reach `proxy.tolvyn.io` (connection refused, timeout, or HTT
 5. You may see a slightly higher latency on that one request (one retry)
 
 This means TOLVYN is **never in your critical path** in SDK mode.
+
+---
+
+## DeepSeek (OpenAI-compatible)
+
+DeepSeek's API is OpenAI-compatible, so **there is no separate DeepSeek client** — you use the **OpenAI client** pointed at TOLVYN's DeepSeek proxy path, with `model: "deepseek-chat"`.
+
+**SDK mode** — override the proxy URL on the OpenAI client:
+
+```python
+# Python
+from tolvyn import OpenAI
+
+client = OpenAI(
+    tolvyn_api_key="tlv_live_...",
+    proxy_url="https://proxy.tolvyn.io/v1/proxy/deepseek/",
+)
+resp = client.chat.completions.create(
+    model="deepseek-chat",
+    messages=[{"role": "user", "content": "Hello"}],
+)
+```
+
+```javascript
+// Node.js
+import { OpenAI } from 'tolvyn'
+
+const client = new OpenAI({
+  tolvynApiKey: 'tlv_live_...',
+  proxyUrl: 'https://proxy.tolvyn.io/v1/proxy/deepseek/',
+})
+const resp = await client.chat.completions.create({
+  model: 'deepseek-chat',
+  messages: [{ role: 'user', content: 'Hello' }],
+})
+```
+
+**Proxy mode** — point any OpenAI client at `https://proxy.tolvyn.io/v1/proxy/deepseek` with your TOLVYN key as the bearer token.
+
+**Add your DeepSeek key in the dashboard** (Account → Providers → DeepSeek). TOLVYN swaps it in when forwarding; your SDK only ever holds the TOLVYN key.
+
+> **Served-model note:** DeepSeek resolves `deepseek-chat` to a concrete served model server-side, so usage may show as e.g. `deepseek-v4-flash` in the dashboard. It is **billed at the `deepseek-chat` rate** — the served alias is expected and correctly priced.
+
+See the per-SDK pages for the full DeepSeek recipe, including Go: [Python](./sdks/python.md) · [Node.js](./sdks/nodejs.md) · [Go](./sdks/go.md).
 
 ---
 
@@ -186,7 +230,7 @@ openAIApiKey: 'sk-...'            // add fallback key
 - No content storage: TOLVYN stores metadata (model, tokens, cost, latency) only — never prompt text or response content
 
 **What TOLVYN does not guarantee:**
-- Provider availability (OpenAI, Anthropic, Google outages are outside TOLVYN's control)
+- Provider availability (OpenAI, Anthropic, Google, DeepSeek outages are outside TOLVYN's control)
 - 100% metering coverage in SDK mode (fail-open requests bypass metering)
 
 **Health endpoint:**
@@ -219,3 +263,4 @@ Before going to production with TOLVYN:
 - [Migrate from direct OpenAI](./migration/from-openai-direct.md)
 - [Python SDK reference](./sdks/python.md)
 - [Node.js SDK reference](./sdks/nodejs.md)
+- [Go SDK reference](./sdks/go.md)

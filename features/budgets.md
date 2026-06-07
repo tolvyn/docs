@@ -1,6 +1,10 @@
 # Budgets
 
-Budgets cap AI spend by team, service, agent, or organization. A budget has a scope, an amount in USD, a period, and one of two modes: `soft` (alert only) or `hard` (block at the proxy before the provider is called).
+Budgets cap AI spend by team, service, agent, or organization. A budget has a scope, an amount in USD, a period, and one of three modes:
+
+- **`soft`** — alert only; never blocks.
+- **`hard`** — block at the proxy (HTTP 429) before the provider is called once the cap would be exceeded.
+- **`approval`** — block at the cap like `hard`, but additionally record a pending approval request so an administrator can grant a bounded, time-boxed extension.
 
 ---
 
@@ -14,7 +18,7 @@ A budget is a row in the `budgets` table with these key fields:
 | `scope_id` | The team/service/agent identifier (or NULL for `organization`) |
 | `amount_microdollars` | Limit in microdollars (int64) |
 | `period` | `daily`, `weekly`, or `monthly` |
-| `mode` | `soft` or `hard` |
+| `mode` | `soft`, `hard`, or `approval` |
 | `current_spend_microdollars` | Running spend in this period |
 | `period_start` / `period_end` | Inclusive bounds of the current period |
 | `settings` | JSONB; stores `last_alerted_threshold` for dedup |
@@ -46,24 +50,23 @@ All four can exist simultaneously and all four spend counters tick on every requ
 
 ## Hard mode
 
-When `mode = "hard"`, requests are rejected at the proxy **before the provider is called** if the budget is exceeded.
+When `mode = "hard"`, requests are rejected at the proxy **before the provider is called** once the budget would be exceeded.
 
-### What the proxy returns
+### How the check works (reservation-based pre-pay)
 
-The check is at `internal/proxy/proxy.go:306`:
+TOLVYN **estimates the cost of each request before sending it to the provider**. Input tokens are estimated from the request body size; output tokens use the `max_tokens` field from the request body, or `1000` if not set.
 
-TOLVYN **estimates the cost of each request before sending it to the provider**. Input tokens are estimated from the request body size; output tokens use the `max_tokens` field from the request body, or `1000` if not set. If `current_spend + estimated_cost >= budget_amount`, the request is rejected immediately with HTTP 429 and a `budget_exceeded` error.
+Rather than comparing against the (lagging) recorded `current_spend`, the proxy **reserves** the estimate against the budget for the duration of the provider call, under a per-budget row lock. Concretely, for each hard budget it atomically:
 
-```go
-if b.Mode == "hard" && (b.CurrentSpendMicrodollars + estimatedCostMicro) >= b.AmountMicrodollars {
-    // Hard limit would be exceeded by this request — reject BEFORE calling provider.
-    w.WriteHeader(http.StatusTooManyRequests)  // 429
-    // response body shown below
-    return
-}
-```
+1. locks the budget row (`SELECT … FOR UPDATE`) — this serializes concurrent requests against the same budget;
+2. sums the in-flight reservations already held against that budget;
+3. blocks if **`current_spend + reserved + this_estimate ≥ amount`**; otherwise inserts a reservation row and proceeds.
 
-Status: **HTTP 429 Too Many Requests**.
+The reservation is **released when the request finishes** (success, error, or panic); a background sweeper reclaims any reservation orphaned by a process crash. This closes the concurrency window where many simultaneous requests could each pass against the same stale spend and collectively overshoot the cap.
+
+If the budget check itself errors (a TOLVYN-side database failure), the request is **allowed through — TOLVYN fails open and never blocks a customer's AI call because of an internal error** (see [Fail-open](#fail-open)).
+
+When a request would breach the cap, the proxy returns **HTTP 429 Too Many Requests** before contacting the provider:
 
 ```json
 {
@@ -114,6 +117,64 @@ Each budget tracks the last threshold it alerted for in its `settings.last_alert
 
 ---
 
+## Approval mode (approve-and-wait)
+
+When `mode = "approval"`, the budget enforces **exactly like `hard` at its cap** — the request is rejected with HTTP 429 and the provider is never called — but with one addition: the proxy records a **pending approval request** so an administrator can grant a bounded, time-boxed cap extension instead of editing the budget.
+
+This is *not* a request queue. The blocked request is not stored or replayed; the caller receives a 429 and should retry later. An approval simply raises the effective cap for a while.
+
+### What the proxy returns
+
+Status: **HTTP 429 Too Many Requests**.
+
+```json
+{
+  "error": "budget_approval_required",
+  "status": "pending_approval",
+  "budget_id": "e5f8a1b2-3c4d-5e6f-7a8b-9c0d1e2f3a4b",
+  "scope": "team",
+  "limit_usd": "1000.00",
+  "estimated_usd": "12.40",
+  "message": "Budget cap reached. An approval request has been created — an administrator must approve to continue."
+}
+```
+
+### The flow
+
+1. A request hits the cap on an `approval`-mode budget → **429** (provider not called).
+2. The proxy records **one pending approval** for that budget and fires a single notification through the alerts channel. This is **deduplicated**: a burst of over-cap requests produces exactly one pending approval row and one alert, not a storm. (Recording the approval is best-effort — it never blocks or changes the 429.)
+3. An administrator reviews pending approvals and either approves (with a bounded amount and time) or denies.
+4. While an approval grant is active, the budget's **effective limit = `amount` + active grants**, computed atomically with the same reservation check, so requests flow again until the grant's amount or time runs out.
+
+### Managing approvals (API)
+
+| Endpoint | Purpose |
+|---|---|
+| `GET /v1/budget-approvals` | List approval requests (filter by status) |
+| `POST /v1/budget-approvals/{id}/approve` | Grant a **bounded** extension |
+| `POST /v1/budget-approvals/{id}/deny` | Deny the request |
+
+Approve body: `{ "extra_usd": <float, required, > 0>, "duration_hours": <int, optional> }`.
+
+- **`extra_usd`** is required and must be > 0 — an approval grants a bounded amount, never an open door.
+- **`duration_hours`** defaults to **24** and is capped at **720 (30 days)** — a grant cannot be unbounded in time. The grant expires automatically at `now() + duration_hours`.
+
+> **Setting `approval` mode:** create or edit an `approval`-mode budget via the **dashboard** or the API (`POST /v1/budgets` with `"mode": "approval"`). The CLI `tolvyn budgets create --mode` currently accepts `soft` and `hard` only — use the dashboard/API for approval mode until CLI support ships.
+
+---
+
+## Fail-open
+
+Budget enforcement is **fail-open**: a TOLVYN-side error must never stop a customer's AI call.
+
+- If the **plan/feature lookup** fails (so TOLVYN can't tell whether hard enforcement is enabled), the request is **allowed through** — the proxy does not hard-block on an unknown plan.
+- If a **reservation/budget check** errors mid-flight, the proxy **logs and allows** the request rather than rejecting it.
+- Only a genuine, successfully-evaluated breach produces a 429.
+
+The same principle runs throughout the proxy hot path: when in doubt due to an internal failure, TOLVYN allows the call and records what it can — it is never a hard dependency that can take your AI offline. (Accounts with no subscription/legacy accounts still enforce budgets normally; only *errors* fail open.)
+
+---
+
 ## Period types
 
 | Period | Bounds (UTC) |
@@ -158,7 +219,7 @@ The dashboard's budget list endpoint also calls `ResetExpiredForTenant()` so the
 1. Pick a scope (Organization / Team / Service / Agent)
 2. Enter the amount in USD
 3. Pick a period (daily / weekly / monthly)
-4. Pick a mode (soft / hard)
+4. Pick a mode (soft / hard / approval)
 5. Save
 
 For a team or service scope, the dashboard provides a picker for `scope_id`. For agent scope, the agent name is what the SDK / proxy sends in `X-Tolvyn-Agent`.

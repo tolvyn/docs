@@ -6,7 +6,7 @@ Get a request flowing through TOLVYN and visible in the dashboard in under 5 min
 
 ## Prerequisites
 
-- An API key from OpenAI, Anthropic, or Google
+- An API key from OpenAI, Anthropic, Google, or DeepSeek
 - One of: Python 3.9+, Node.js 18+, Go 1.21+, or any HTTP client (e.g. curl)
 - A few minutes
 
@@ -36,10 +36,11 @@ Pick a provider and paste the corresponding key:
 | OpenAI | `sk-...` | [platform.openai.com/api-keys](https://platform.openai.com/api-keys) |
 | Anthropic | `sk-ant-...` | [console.anthropic.com/settings/keys](https://console.anthropic.com/settings/keys) |
 | Google | API key for Generative Language API | [aistudio.google.com/apikey](https://aistudio.google.com/apikey) |
+| DeepSeek | `sk-...` | [platform.deepseek.com/api_keys](https://platform.deepseek.com/api_keys) |
 
 The provider key is encrypted with envelope encryption (AES-256-GCM, tenant-scoped DEK) and stored server-side. Your application code never holds it again. TOLVYN uses it to authenticate to the provider when proxying your requests.
 
-You can add keys for all three providers from the same dashboard.
+You can add keys for any of these providers from the same dashboard. DeepSeek is OpenAI-compatible — see [Integration Modes → DeepSeek](../integration-modes.md#deepseek-openai-compatible) for the client recipe.
 
 ---
 
