@@ -163,7 +163,7 @@ Anthropic(
 from tolvyn import Google
 
 g = Google(tolvyn_api_key="tlv_live_...")
-model = g.GenerativeModel("gemini-1.5-flash")
+model = g.GenerativeModel("gemini-2.5-flash")
 response = model.generate_content("Hello")
 print(response.text)
 ```

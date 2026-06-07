@@ -134,7 +134,7 @@ interface TolvynAnthropicOptions extends Omit<ClientOptions, 'apiKey' | 'baseURL
 import { Google } from 'tolvyn';
 
 const ai = new Google({ tolvynApiKey: 'tlv_live_...' });
-const model = ai.getGenerativeModel({ model: 'gemini-1.5-flash' });
+const model = ai.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
 const result = await model.generateContent('Hello');
 console.log(result.response.text());

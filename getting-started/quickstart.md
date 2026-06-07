@@ -199,7 +199,7 @@ client = Anthropic(
 from tolvyn import Google
 
 goog = Google(tolvyn_api_key="tlv_live_...")
-model = goog.GenerativeModel("gemini-1.5-flash")
+model = goog.GenerativeModel("gemini-2.5-flash")
 ```
 
 **Proxy mode (any language, any provider):**

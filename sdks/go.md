@@ -154,7 +154,7 @@ func NewClient(ctx context.Context, opts tolvyn.ClientOptions) (*Client, error)
 func NewClientFromEnv(ctx context.Context) (*Client, error)
 ```
 
-`Client` embeds `*genai.Client`. Use methods like `client.GenerativeModel("gemini-1.5-flash")` exactly as you would on the official SDK.
+`Client` embeds `*genai.Client`. Use methods like `client.GenerativeModel("gemini-2.5-flash")` exactly as you would on the official SDK.
 
 ### Known Google limitations
 
