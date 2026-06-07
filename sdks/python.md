@@ -2,7 +2,7 @@
 
 The `tolvyn` Python package wraps the official `openai`, `anthropic`, and `google-generativeai` SDKs so requests route through the TOLVYN proxy. Your existing code keeps working; you change the import and add a TOLVYN API key.
 
-Current version: **0.1.5**.
+Current version: **0.1.7**.
 
 ---
 
@@ -374,7 +374,9 @@ There is no `AsyncGoogle` class — `google-generativeai` uses a process-global 
 
 | Version | Notes |
 |---|---|
-| 0.1.5 | Current. Google `UserWarning` on `fail_open=True` (PY-01); multi-instance `UserWarning` (PY-03). |
+| 0.1.7 | Current. Provider-aware fail-open — direct fallback uses the correct per-provider auth header (e.g. `x-api-key` for Anthropic) and strips any inbound TOLVYN auth so the TOLVYN key is never sent to a provider. |
+| 0.1.6 | Lazy provider imports — importing one provider no longer requires the others' optional SDKs; a friendly error is raised if a needed provider package is missing. |
+| 0.1.5 | Google `UserWarning` on `fail_open=True`; multi-instance `UserWarning`. |
 | 0.1.4 | Fail-open URL composition fix (PY-02); deduplicate `_build_tolvyn_headers` to `_config.py` (PY-06); remove dead code (PY-04). |
 | 0.1.3 | OpenAI + Anthropic + Google. |
 
