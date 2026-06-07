@@ -206,7 +206,7 @@ This means:
 - The `last_alerted_threshold` setting resets — so 50%/75%/90%/100% will fire again in the new period
 - The reset is idempotent: if two requests arrive simultaneously, only the first wins the `UPDATE`; the second re-reads the updated row
 
-The dashboard's budget list endpoint also calls `ResetExpiredForTenant()` so the UI reflects the current period even if no proxy request has triggered the reset yet.
+The dashboard's budget list endpoint also resets expired periods so the UI reflects the current period even if no proxy request has triggered the reset yet.
 
 ---
 

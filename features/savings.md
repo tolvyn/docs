@@ -203,7 +203,7 @@ curl -X POST https://api.tolvyn.io/v1/operator/savings/recompute \
   -H "Authorization: Bearer <operator-token>"
 ```
 
-This runs `RunAllTenants` immediately. Useful after a major code change in the source or after a backfill of `request_hash`.
+This runs the savings analyzer across all tenants immediately. Useful after a major code change or after a backfill of `request_hash`.
 
 ---
 

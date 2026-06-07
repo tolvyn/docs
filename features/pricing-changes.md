@@ -86,7 +86,7 @@ For scraper-detected candidates (path A):
 
 ### What approval does
 
-From `HandleOperatorApproveCandidate`, all inside a single transaction:
+On operator approval, all inside a single transaction:
 
 1. Marks the candidate row as `approved` with `approved_at` and `approved_by = 'operator'`.
 2. Updates the `models` table: writes the new value into `pricing_input_per_mtok`, `pricing_output_per_mtok`, or `pricing_cached_per_mtok` depending on `field_changed`. Sets `pricing_updated_at = now()`.

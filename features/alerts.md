@@ -37,7 +37,7 @@ var thresholds = []int{50, 75, 90, 100}
 
 ### When the check runs
 
-`CheckAndFireThresholdAlerts` runs **inside the metering transaction** for every successful proxy request that updated at least one budget. This means the alert insert is atomic with the request log and the budget spend update — either all happen or none do.
+The threshold-alert check runs **inside the metering transaction** for every successful proxy request that updated at least one budget. This means the alert insert is atomic with the request log and the budget spend update — either all happen or none do.
 
 ### Dedup
 
@@ -92,7 +92,7 @@ The current request is excluded from the baseline (`WHERE id != $2::uuid`).
 
 ### When the check runs
 
-`CheckCostAnomaly` is called **in a goroutine after the metering transaction commits**, so the new request is visible in the `requests` table. Failures (DB errors, email failures) are logged and never propagate to the proxied request.
+The cost-anomaly check runs **in a goroutine after the metering transaction commits**, so the new request is already recorded. Failures (DB errors, email failures) are logged and never propagate to the proxied request.
 
 ### Metadata shape
 
@@ -163,7 +163,7 @@ Fires when an operator approves a pricing candidate (via `POST /v1/operator/pric
 
 ### Trigger
 
-`NotifyPricingChange` is called from the operator's approval handler. It:
+When an operator approves a pricing change, the pricing-change notifier runs. It:
 
 1. Queries `requests` for all tenants who used the affected `model_family` in the last 30 days
 2. Computes a per-tenant cost impact estimate based on their token volume × price delta
@@ -217,7 +217,7 @@ If the server has SMTP configured, emails go to the tenant's `email` address. SM
 
 **Port 465 uses implicit TLS** (TLS at connect time). All other ports (typically `587`) use STARTTLS via `smtp.SendMail`.
 
-**Graceful degradation:** if `TOLVYN_SMTP_HOST`, `TOLVYN_SMTP_PORT`, or `TOLVYN_ALERT_FROM_EMAIL` is missing, `SendAlert` logs the message to stdout instead of sending — it never panics, returns an error, or blocks the caller. This lets the server run in development without SMTP configured.
+**Graceful degradation:** if `TOLVYN_SMTP_HOST`, `TOLVYN_SMTP_PORT`, or `TOLVYN_ALERT_FROM_EMAIL` is missing, the email sender logs the message to stdout instead of sending — it never panics, returns an error, or blocks the caller. This lets the server run in development without SMTP configured.
 
 Email send happens **in a goroutine** after the alert is inserted. Email failures do not roll back the alert insert or affect the proxied request.
 
@@ -239,7 +239,7 @@ Subscribe to all three (or use the special value `"alert.all"`) when creating a 
 
 #### Webhook envelope
 
-Every webhook delivery uses this envelope (`WebhookEvent`):
+Every webhook delivery uses this envelope:
 
 ```json
 {

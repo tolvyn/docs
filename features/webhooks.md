@@ -44,7 +44,7 @@ curl -X POST https://api.tolvyn.io/v1/webhooks \
   }'
 ```
 
-Request fields (from `HandleCreateWebhook` in the source):
+Request fields:
 
 | Field | Type | Required |
 |---|---|---|
@@ -111,7 +111,6 @@ Every delivery uses the same envelope:
 
 ### `alert.budget_threshold`
 
-Source: `BudgetThresholdData` struct.
 
 ```json
 {
@@ -128,7 +127,6 @@ Source: `BudgetThresholdData` struct.
 
 ### `alert.cost_anomaly`
 
-Source: `CostAnomalyData` struct.
 
 ```json
 {
@@ -147,8 +145,6 @@ The `provider` and `team_id` fields are populated at the metering dispatch site,
 
 ### `alert.model_change`
 
-Source: `ModelChangeData` struct.
-
 ```json
 {
   "model_id": "claude-opus-4-7",
@@ -165,7 +161,7 @@ The `provider` field is populated at the dispatch site for model-change events.
 
 ### `alert.pricing_change`
 
-Source: `PricingChangeData` struct. Fires when a provider's published price for a model the tenant has used in the last 30 days changes.
+Fires when a provider's published price for a model the tenant has used in the last 30 days changes.
 
 ```json
 {
@@ -308,7 +304,7 @@ A delivery is treated as **failed** when the HTTP response status is outside `20
 
 ### Retry tick
 
-A background goroutine started by `main.go` calls `RetryPendingDeliveries(db)` every 5 minutes. It scans for deliveries where:
+A background job runs every 5 minutes. It scans for deliveries where:
 
 ```sql
 delivered_at IS NULL
