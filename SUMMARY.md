@@ -1,20 +1,35 @@
 # TOLVYN Documentation
 
 ## Getting Started
-* [Quick Start](quickstart.md)
-* [How TOLVYN Works](concepts.md)
+* [What is TOLVYN?](README.md)
+* [Quickstart](getting-started/quickstart.md)
+* [Integration Modes](integration-modes.md)
 
-## Integration
-* [Python SDK](python-sdk.md)
-* [Node.js SDK](nodejs-sdk.md)
-* [Proxy Mode](proxy-mode.md)
-* [Attribution Headers](attribution.md)
+## SDKs
+* [Python SDK](sdks/python.md)
+* [Node.js SDK](sdks/nodejs.md)
+* [Go SDK](sdks/go.md)
 
 ## Reference
-* [CLI Reference](cli-reference.md)
-* [API Reference](api-reference.md)
-* [Budgets & Alerts](budgets-and-alerts.md)
-* [Immutable Ledger](ledger.md)
+* [REST API](reference/api.md)
+* [CLI Reference](reference/cli.md)
 
-## Help
-* [FAQ](faq.md)
+## Features
+* [Budgets & Enforcement](features/budgets.md)
+* [Alerts](features/alerts.md)
+* [Webhooks](features/webhooks.md)
+* [Kill Switch](features/kill-switch.md)
+* [Reconciliation](features/reconciliation.md)
+* [Savings Dashboard](features/savings.md)
+* [Team Insights](features/team-insights.md)
+* [End Customers](features/end-customers.md)
+* [Agent Budgets](features/agents.md)
+* [Pricing Changes](features/pricing-changes.md)
+* [Immutable Ledger](features/ledger.md)
+* [AI Cost Index](features/cost-index.md)
+
+## Migrate to TOLVYN
+* [Overview](migration/index.md)
+* [From Helicone](migration/from-helicone.md)
+* [From Portkey](migration/from-portkey.md)
+* [From OpenAI Direct](migration/from-openai-direct.md)
