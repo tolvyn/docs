@@ -76,7 +76,7 @@ If you're migrating from Helicone, the proxy automatically reads `Helicone-User-
 
 ## What is tracked
 
-Per-user aggregation from `HandleUsageByUser` (`internal/api/client.go:1921`). One row per user with these fields:
+Per-user aggregation from `HandleUsageByUser`. One row per user with these fields:
 
 | Field | Type | Meaning |
 |---|---|---|
@@ -133,7 +133,7 @@ High retry rates often mean the user is asking the wrong model, getting tool-cal
 
 ## Per-user detail
 
-Click any user on the dashboard, or call `GET /v1/usage/by-user/{user}` directly. Returns (`HandleUsageByUserDetail`, `client.go:2005`):
+Click any user on the dashboard, or call `GET /v1/usage/by-user/{user}` directly. Returns:
 
 ```json
 {

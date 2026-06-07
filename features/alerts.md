@@ -19,7 +19,6 @@ Every alert is inserted into the `alerts` table with a JSONB `metadata` field ca
 
 ## Budget threshold alerts
 
-Source: `internal/alert/threshold.go`.
 
 ### Thresholds
 
@@ -70,7 +69,7 @@ Once `90%` fires, `50%`, `75%`, and `90%` are skipped until the period rolls ove
 
 ## Cost anomaly alerts
 
-Source: `internal/alert/anomaly.go`. Fires when a single request costs dramatically more than the service's recent average.
+Fires when a single request costs dramatically more than the service's recent average.
 
 ### Algorithm
 
@@ -113,7 +112,7 @@ The current request is excluded from the baseline (`WHERE id != $2::uuid`).
 
 ## Model change alerts
 
-Source: `internal/alert/model_change.go`. Fires when a service quietly switches model families with a significant cost impact.
+Fires when a service quietly switches model families with a significant cost impact.
 
 ### Algorithm
 
@@ -160,7 +159,7 @@ Severity mapping:
 
 ## Pricing change alerts
 
-Source: `internal/alert/pricing_change.go`. Fires when an operator approves a pricing candidate (via `POST /v1/operator/pricing-candidates/{id}/approve`).
+Fires when an operator approves a pricing candidate (via `POST /v1/operator/pricing-candidates/{id}/approve`).
 
 ### Trigger
 
@@ -194,7 +193,7 @@ Source: `internal/alert/pricing_change.go`. Fires when an operator approves a pr
 
 ### No webhook for pricing changes
 
-`internal/webhook/types.go` defines only `EventBudgetThreshold`, `EventCostAnomaly`, and `EventModelChange`. **There is no `pricing_change` webhook event** — these alerts surface only in-app and (above-threshold cases) by email.
+Budget-threshold, cost-anomaly, and model-change events have webhook deliveries, but **there is no `pricing_change` webhook event** — pricing-change alerts surface only in-app and (above-threshold cases) by email.
 
 ---
 
@@ -206,7 +205,7 @@ Every alert is inserted into the `alerts` table. The dashboard `/alerts` page po
 
 ### Email
 
-If the server has SMTP configured, emails go to the tenant's `email` address. SMTP environment variables (`internal/alert/email.go:27-39`):
+If the server has SMTP configured, emails go to the tenant's `email` address. SMTP environment variables:
 
 | Variable | Required | Description |
 |---|---|---|
@@ -226,7 +225,7 @@ Email send happens **in a goroutine** after the alert is inserted. Email failure
 
 For `budget_threshold`, `cost_anomaly`, and `model_change`, a webhook is dispatched to every active webhook endpoint that subscribed to the matching event type.
 
-Webhook event types (`internal/webhook/types.go:5-9`):
+Webhook event types:
 
 ```go
 const (
@@ -282,7 +281,7 @@ Every webhook delivery uses this envelope (`WebhookEvent`):
 }
 ```
 
-As of the BE-04 fix, `provider` and `team_id` are populated at the dispatch site (`proxy.go meterAndRecord`).
+The `provider` and `team_id` fields are populated at the metering dispatch site, so they are present in alert payloads.
 
 #### `alert.model_change` data
 
@@ -298,7 +297,7 @@ As of the BE-04 fix, `provider` and `team_id` are populated at the dispatch site
 }
 ```
 
-`provider` is similarly not populated by the dispatch site (`model_change.go:198-205`).
+`provider` is similarly not populated by the dispatch site.
 
 #### HMAC signature
 

@@ -2,8 +2,10 @@
 
 ## Getting Started
 * [What is TOLVYN?](README.md)
+* [How TOLVYN Works](getting-started/how-tolvyn-works.md)
 * [Quickstart](getting-started/quickstart.md)
 * [Integration Modes](integration-modes.md)
+* [FAQ](getting-started/faq.md)
 
 ## SDKs
 * [Python SDK](sdks/python.md)
@@ -21,6 +23,7 @@
 * [Webhooks](features/webhooks.md)
 * [Kill Switch](features/kill-switch.md)
 * [Reconciliation](features/reconciliation.md)
+* [Metering Accuracy](features/metering-accuracy.md)
 * [Savings Dashboard](features/savings.md)
 * [Team Insights](features/team-insights.md)
 * [End Customers](features/end-customers.md)

@@ -44,7 +44,7 @@ curl -X POST https://api.tolvyn.io/v1/webhooks \
   }'
 ```
 
-Request fields (from `HandleCreateWebhook` in `internal/api/client.go`):
+Request fields (from `HandleCreateWebhook` in the source):
 
 | Field | Type | Required |
 |---|---|---|
@@ -80,7 +80,7 @@ Errors:
 
 ## Event types
 
-Source: `internal/webhook/types.go`. Four real event types plus one synthetic test event:
+Four real event types plus one synthetic test event:
 
 | Event type | When dispatched |
 |---|---|
@@ -143,7 +143,7 @@ Source: `CostAnomalyData` struct.
 }
 ```
 
-As of the BE-04 fix, the `provider` and `team_id` fields are populated at the dispatch site (`proxy.go meterAndRecord`).
+The `provider` and `team_id` fields are populated at the metering dispatch site, so they are present in webhook payloads.
 
 ### `alert.model_change`
 
@@ -161,7 +161,7 @@ Source: `ModelChangeData` struct.
 }
 ```
 
-As of the BE-05 fix, the `provider` field is populated at the dispatch site (`model_change.go`).
+The `provider` field is populated at the dispatch site for model-change events.
 
 ### `alert.pricing_change`
 
@@ -208,7 +208,7 @@ Triggered only by the test endpoint. Minimal payload:
 
 ## Headers
 
-Three headers are set on every delivery (`dispatcher.go:215-217`):
+Three headers are set on every delivery:
 
 | Header | Value |
 |---|---|

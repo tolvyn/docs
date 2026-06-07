@@ -51,7 +51,7 @@ Combine with other attribution headers as needed — see [combining](#combining-
 
 ## What is tracked
 
-Per-end-customer aggregation from `HandleUsageByEndCustomer` (`internal/api/client.go:2158`):
+Per-end-customer aggregation from `HandleUsageByEndCustomer`:
 
 | Field | Type | Meaning |
 |---|---|---|

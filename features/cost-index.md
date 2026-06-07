@@ -20,7 +20,7 @@ The Cost Index answers those questions with production data. Every night, TOLVYN
 
 ## How data is collected
 
-A background goroutine starts at server boot (`internal/aggregate/collector.go:13-36`):
+A background goroutine starts at server boot:
 
 ```go
 now := time.Now().UTC()
@@ -53,7 +53,6 @@ The collection query aggregates the `requests` table grouped by `(provider, mode
 
 ## K-anonymity floor
 
-From `collector.go:64`:
 
 ```sql
 HAVING COUNT(DISTINCT r.tenant_id) >= 3
@@ -61,7 +60,7 @@ HAVING COUNT(DISTINCT r.tenant_id) >= 3
 
 Every published data point reflects **at least 3 contributing tenants**. Buckets that don't meet this threshold are silently dropped at collection time. They never reach `aggregate_metadata`, never appear on the public index, and cannot be re-derived from the public surface.
 
-The threshold is also re-applied at query time on `GET /v1/public/cost-index` (`internal/api/client.go:307`):
+The threshold is also re-applied at query time on `GET /v1/public/cost-index`:
 
 ```sql
 WHERE period_date >= now() - ($1 || ' days')::interval
@@ -127,7 +126,7 @@ When a tenant signs up, `settings.data_share_enabled` is unset. The collector re
 
 `IS DISTINCT FROM 'false'` returns true for NULL and true for `'true'` — only explicit `'false'` excludes a tenant.
 
-The account dashboard (`HandleGetAccount`, `client.go:70`) confirms this is the default:
+The account dashboard confirms this is the default:
 
 ```go
 COALESCE((settings->>'data_share_enabled')::boolean, true)
