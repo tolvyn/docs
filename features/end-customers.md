@@ -51,7 +51,7 @@ Combine with other attribution headers as needed — see [combining](#combining-
 
 ## What is tracked
 
-Per-end-customer aggregation from `HandleUsageByEndCustomer`:
+Per-end-customer aggregation:
 
 | Field | Type | Meaning |
 |---|---|---|

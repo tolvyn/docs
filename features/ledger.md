@@ -89,7 +89,7 @@ The signing secret must be at least 32 bytes. The server refuses to start withou
 
 ### Advisory lock for sequence integrity
 
-Sequence numbers must be gap-free per tenant for verification to work. Concurrent `AppendRecord` calls for the same tenant could otherwise race and produce duplicates or gaps.
+Sequence numbers must be gap-free per tenant for verification to work. Concurrent ledger appends for the same tenant could otherwise race and produce duplicates or gaps.
 
 The fix: a per-tenant PostgreSQL advisory lock:
 
@@ -100,7 +100,7 @@ if _, err := tx.ExecContext(ctx, "SELECT pg_advisory_xact_lock($1)", lockKey); e
 }
 ```
 
-`pg_advisory_xact_lock` serializes all `AppendRecord` calls for the same tenant **within the scope of each call's transaction**. The lock releases automatically on transaction commit or rollback. Across tenants, no contention — each tenant's chain has its own lock key.
+A per-tenant advisory lock serializes ledger appends for the same tenant **within each transaction**. The lock releases automatically on transaction commit or rollback. Across tenants, no contention — each tenant's chain has its own lock key.
 
 This means a single tenant making 1,000 concurrent requests will have those 1,000 ledger appends serialized; cross-tenant traffic is unaffected.
 
@@ -238,7 +238,7 @@ For SaaS customers who need a verified report of AI usage on their behalf, filte
 ## Operational notes
 
 - **The ledger is not a queue.** Records are inserted synchronously inside the request's metering transaction. There is no separate "ledger lag" — if the request was metered, the ledger row exists.
-- **The chain survives RLS** because `AppendRecord` runs inside `withTenant` which sets `app.current_tenant`. Cross-tenant reads are still blocked.
+- **The chain survives row-level security** because ledger appends run within the tenant-scoped transaction context. Cross-tenant reads are still blocked.
 - **Backups must be physical, point-in-time, or logical with `pg_dump --no-data --schema-only` plus `pg_dump --data-only --table=ledger_records`.** Avoid tools that re-order rows during export — the SQL primary key on `sequence_number` is unique but verification walks in `sequence_number ASC` order, so any inserter that doesn't preserve order can break verification.
 - **Don't manually edit the `ledger_records` table.** The application enforces RLS, advisory locks, and atomic inserts. Direct SQL bypasses all of that and almost certainly breaks the chain.
 

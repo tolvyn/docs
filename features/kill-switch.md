@@ -33,7 +33,7 @@ Use it for incident response: a runaway agent, a leaked API key, a service in a 
 
 ### Check order
 
-`IsKilled` short-circuits on the first match. Scopes are checked in strict priority order: `all` → `team` → `service` → `agent` → `api_key`. A higher-priority scope match wins regardless of when each kill was activated:
+The kill check short-circuits on the first match. Scopes are checked in strict priority order: `all` → `team` → `service` → `agent` → `api_key`. A higher-priority scope match wins regardless of when each kill was activated:
 
 ```go
 for i := range entries {
@@ -119,9 +119,9 @@ Active kill switches **survive a server restart** because they are loaded from t
 
 ### Reconciliation loop
 
-The store reloads from the database every 60 seconds via `StartReconciliationLoop`, so kill switches inserted directly via SQL (or restored from backup, or activated on a replica) eventually re-sync without a server restart. Worst-case staleness window is 60 seconds.
+The store reloads from the database every 60 seconds, so kill switches inserted directly via SQL (or restored from backup, or activated on a replica) eventually re-sync without a server restart. Worst-case staleness window is 60 seconds.
 
-For tighter consistency, prefer the API — the in-memory store is updated synchronously on every `Activate` / `Deactivate` call from `POST /v1/kill` and `DELETE /v1/kill/{id}`. The reconciliation loop is a safety net, not the primary sync mechanism.
+For tighter consistency, prefer the API — the in-memory store is updated synchronously on every activate / deactivate call (`POST /v1/kill` and `DELETE /v1/kill/{id}`). The reconciliation loop is a safety net, not the primary sync mechanism.
 
 ---
 

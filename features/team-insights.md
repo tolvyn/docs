@@ -76,7 +76,7 @@ If you're migrating from Helicone, the proxy automatically reads `Helicone-User-
 
 ## What is tracked
 
-Per-user aggregation from `HandleUsageByUser`. One row per user with these fields:
+Per-user aggregation. One row per user with these fields:
 
 | Field | Type | Meaning |
 |---|---|---|

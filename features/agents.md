@@ -119,7 +119,7 @@ func AgentNameToUUID(agentName string) string {
 
 This is the standard UUID v5 algorithm (SHA-1 hashed with the RFC 4122 DNS namespace). Properties:
 
-- **Deterministic.** `AgentNameToUUID("claude-code")` always returns the same UUID, regardless of when or where it runs
+- **Deterministic.** A given agent name (e.g. `claude-code`) always maps to the same UUID, regardless of when or where it runs
 - **No table required.** No insert needed to "register" an agent name
 - **Cross-tenant isolation.** The UUID is the same across all tenants, but queries are scoped by `tenant_id`, so two different tenants using the same agent name see independent budgets
 - **Case-sensitive.** `Claude-Code` and `claude-code` produce different UUIDs; pick a convention and stick to it
