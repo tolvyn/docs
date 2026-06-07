@@ -16,6 +16,7 @@
 
 ## Features
 * [Budgets & Enforcement](features/budgets.md)
+* [Spend Quotas](features/spend-quotas.md)
 * [Alerts](features/alerts.md)
 * [Webhooks](features/webhooks.md)
 * [Kill Switch](features/kill-switch.md)

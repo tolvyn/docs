@@ -2,7 +2,7 @@
 
 The `tolvyn` npm package wraps the official `openai`, `@anthropic-ai/sdk`, and `@google/generative-ai` SDKs so requests route through the TOLVYN proxy. Existing application code stays the same; you change the import and add a TOLVYN API key.
 
-Current version: **1.0.6**.
+Current version: **1.0.8**.
 
 ---
 
@@ -376,11 +376,13 @@ TypeScript with `"module": "commonjs"` or `"node16"`/`"nodenext"` works without 
 
 | Version | Notes |
 |---|---|
-| 1.0.6 | Current. Google fail-open functional (ND-01); class renamed `TolvynGoogle` → `Google` (ND-05); `@google/generative-ai` is now an optional peer dependency (ND-08). |
+| 1.0.8 | Current. Provider-aware fail-open — direct fallback uses the correct per-provider auth header and strips inbound TOLVYN auth; Google proxy URL double-slash fix. |
+| 1.0.7 | Release with rewritten README. |
+| 1.0.6 | Google fail-open functional; class renamed `TolvynGoogle` → `Google`; `@google/generative-ai` is now an optional peer dependency. |
 | 1.0.5 | Fail-open URL composition fix (ND-02); deduplicate `makeFailOpenFetch` so client.ts imports from failopen.ts (ND-03); trailing slash on Google proxy URL (ND-07). |
 | 1.0.4 | OpenAI + Anthropic + Google. Node 18+. Dual ESM/CJS build. |
 
-The Node SDK reached `1.0` ahead of the Python SDK (currently `0.1.5`) — the underlying provider SDKs (`openai`, `@anthropic-ai/sdk`) have stable APIs that gave Node a faster path to a stable public surface.
+The Node SDK reached `1.0` ahead of the Python SDK (currently `0.1.7`) — the underlying provider SDKs (`openai`, `@anthropic-ai/sdk`) have stable APIs that gave Node a faster path to a stable public surface.
 
 ---
 

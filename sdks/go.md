@@ -2,7 +2,7 @@
 
 The `tolvyn-go` module wraps the official `github.com/openai/openai-go`, `github.com/anthropics/anthropic-sdk-go`, and `github.com/google/generative-ai-go` clients so requests route through the TOLVYN proxy. Existing code stays the same; you change the constructor and add a TOLVYN API key.
 
-Current published tag: **v0.1.3**.
+Current published tag: **v0.1.4**.
 
 ---
 
@@ -394,7 +394,8 @@ The Go Google sub-package is closer to OpenAI/Anthropic in shape than the Python
 
 | Version | Notes |
 |---|---|
-| v0.1.3 | Current. Google fail-open transport (GO-02); `Defaults()` uses `log.Fatal` instead of `panic` (GO-03); trailing-slash audit (GO-07). |
+| v0.1.4 | Current. Provider-aware fail-open — direct fallback uses the correct per-provider auth header and strips inbound TOLVYN auth so the TOLVYN key is never sent to a provider. |
+| v0.1.3 | Google fail-open transport; `Defaults()` uses `log.Fatal` instead of `panic`; trailing-slash audit. |
 | v0.1.2 | OpenAI fail-open URL fix (GO-01); `Version` constant updated; `BoolPtr` removed (GO-05). |
 | v0.1.1 | Renamed `FailOpen bool` → `DisableFailOpen bool` so the zero value enables fail-open by default. |
 | v0.1.0 | Initial release. OpenAI + Anthropic + Google. |

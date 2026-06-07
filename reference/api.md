@@ -9,7 +9,7 @@ Every endpoint that TOLVYN exposes, sourced from `cmd/tolvyn-server/main.go` rou
 | Concern | Value |
 |---|---|
 | Management API base | `https://api.tolvyn.io` |
-| Proxy base | `https://proxy.tolvyn.io/v1/proxy/{provider}/` (`openai`, `anthropic`, `google`) |
+| Proxy base | `https://proxy.tolvyn.io/v1/proxy/{provider}/` (`openai`, `anthropic`, `google`, `deepseek`) |
 | Content type | `application/json` (unless noted) |
 | Client auth | `Authorization: Bearer <JWT>` from `POST /v1/auth/login` |
 | Operator auth | `Authorization: Bearer <TOLVYN_OPERATOR_TOKEN>` on `/v1/operator/*` |
@@ -395,7 +395,7 @@ All require JWT.
 | `agent_name` | string | when `scope_type=agent` | The agent identifier (UUID is derived from this) |
 | `amount_usd` | number | yes | Must be > 0 |
 | `period` | string | no | `daily`, `weekly`, `monthly` (default), `yearly` |
-| `mode` | string | no | `soft` (default — alert only) or `hard` (block requests at the proxy) |
+| `mode` | string | no | `soft` (default — alert only), `hard` (block at the proxy), or `approval` (block at the cap but record a pending approval an admin can grant) |
 
 ```bash
 curl -X POST https://api.tolvyn.io/v1/budgets \
@@ -431,6 +431,103 @@ Updates `amount_usd`, `period`, and/or `mode`.
 ### `DELETE /v1/budgets/{id}`
 
 Returns `204 No Content`.
+
+---
+
+## Budget approvals
+
+For budgets in `approval` mode. When a request hits the cap, the proxy records a **pending approval** (deduplicated to one per budget) and returns 429. An administrator then grants a **bounded** extension or denies it. All require JWT.
+
+### `GET /v1/budget-approvals`
+
+Lists approval requests. Optional `?status=` filter (e.g. `pending`).
+
+```json
+{
+  "data": [
+    {
+      "id": "a1b2c3d4-…",
+      "budget_id": "e5f8a1b2-…",
+      "status": "pending"
+    }
+  ],
+  "total": 1
+}
+```
+
+Decided rows additionally include `decided_at`, `decided_by`, `extra_microdollars`, `extra_usd`, and `approved_until`.
+
+### `POST /v1/budget-approvals/{id}/approve`
+
+Grants a **bounded** extension — never an open door.
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `extra_usd` | number | yes | Additional spend to allow; must be > 0 |
+| `duration_hours` | integer | no | How long the grant lasts. Defaults to **24**; capped at **720** (30 days). The grant expires automatically. |
+
+```bash
+curl -X POST https://api.tolvyn.io/v1/budget-approvals/a1b2c3d4-.../approve \
+  -H "Authorization: Bearer <jwt>" \
+  -H "Content-Type: application/json" \
+  -d '{"extra_usd": 250, "duration_hours": 48}'
+```
+
+While the grant is active, the budget's effective limit is `amount + active grants`.
+
+### `POST /v1/budget-approvals/{id}/deny`
+
+Denies the request.
+
+```json
+{ "status": "denied" }
+```
+
+---
+
+## Spend quotas
+
+Alert-tier spend tracking — quotas notify, never block (see [Spend Quotas](../features/spend-quotas.md)). All require JWT.
+
+### `POST /v1/spend-quotas`
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `dimension_type` | string | yes | `model`, `team`, `service`, `end_customer`, or `tenant_total` |
+| `dimension_value` | string | when applicable | The model id / team id / service name / end-customer id. Empty for `tenant_total`. |
+| `period` | string | yes | `day`, `week`, or `month` |
+| `limit_microdollars` | integer | yes | Limit in microdollars (1 USD = 1,000,000 µ$); must be > 0 |
+| `alert_thresholds` | array of integers | no | Utilization percentages to alert at (each 1–1000; over-100 allowed) |
+| `enabled` | boolean | no | Defaults to `true` |
+
+```bash
+curl -X POST https://api.tolvyn.io/v1/spend-quotas \
+  -H "Authorization: Bearer <jwt>" \
+  -H "Content-Type: application/json" \
+  -d '{"dimension_type":"tenant_total","period":"month","limit_microdollars":5000000000,"alert_thresholds":[50,80,100]}'
+```
+
+Response includes `id`, `dimension_type`, `period`, `limit_microdollars`, `limit_usd`, `alert_thresholds`, `enabled`, `created_at`, `updated_at`.
+
+### `GET /v1/spend-quotas`
+
+Lists quotas for the tenant.
+
+### `GET /v1/spend-quotas/{id}`
+
+Returns one quota.
+
+### `PUT /v1/spend-quotas/{id}`
+
+Updates `limit_microdollars`, `alert_thresholds`, and/or `enabled`.
+
+### `DELETE /v1/spend-quotas/{id}`
+
+Deletes the quota.
+
+### `GET /v1/spend-quotas/{id}/forecast`
+
+Burn-rate forecast (linear extrapolation — an estimate). Returns `quota`, `consumption`, and a `forecast` object whose `state` is one of `on_track`, `projected_exhaustion`, `over_limit`, or `insufficient_data`. See [Spend Quotas → Burn-rate forecast](../features/spend-quotas.md#burn-rate-forecast) for the full response shape and caveats.
 
 ---
 
@@ -916,7 +1013,7 @@ A `heartbeat` event is emitted every 15 seconds so intermediate proxies do not c
 
 ## Proxy
 
-Proxy endpoints accept the full OpenAI / Anthropic / Google API on the corresponding path prefix.
+Proxy endpoints accept the full OpenAI / Anthropic / Google / DeepSeek API on the corresponding path prefix.
 
 ### `/v1/proxy/openai/*`
 
@@ -942,6 +1039,19 @@ curl https://proxy.tolvyn.io/v1/proxy/anthropic/v1/messages \
 ### `/v1/proxy/google/*`
 
 Same pattern. The TOLVYN API key may be passed as `Authorization: Bearer` or `x-goog-api-key`.
+
+### `/v1/proxy/deepseek/*`
+
+DeepSeek is OpenAI-compatible — call it on this path with the OpenAI request shape and `model: "deepseek-chat"`. Authentication is `Authorization: Bearer tlv_live_...` (or `x-api-key`).
+
+```bash
+curl https://proxy.tolvyn.io/v1/proxy/deepseek/chat/completions \
+  -H "Authorization: Bearer tlv_live_..." \
+  -H "Content-Type: application/json" \
+  -d '{"model":"deepseek-chat","messages":[{"role":"user","content":"Hello"}]}'
+```
+
+DeepSeek resolves `deepseek-chat` to a concrete served model, so usage may show as e.g. `deepseek-v4-flash` — it is billed at the `deepseek-chat` rate.
 
 ### Proxy-specific status codes
 
