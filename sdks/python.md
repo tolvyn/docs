@@ -187,6 +187,31 @@ Google(
 
 ---
 
+## DeepSeek (OpenAI-compatible)
+
+DeepSeek's API is OpenAI-compatible, so there is **no `DeepSeek` client** — use the `OpenAI` client with `proxy_url` pointed at the DeepSeek proxy path and `model="deepseek-chat"`.
+
+```python
+from tolvyn import OpenAI
+
+client = OpenAI(
+    tolvyn_api_key="tlv_live_...",
+    proxy_url="https://proxy.tolvyn.io/v1/proxy/deepseek/",
+)
+
+response = client.chat.completions.create(
+    model="deepseek-chat",
+    messages=[{"role": "user", "content": "Hello"}],
+)
+print(response.choices[0].message.content)
+```
+
+- `AsyncOpenAI` works identically with the same `proxy_url`.
+- Add your DeepSeek provider key in the **dashboard** (Account → Providers → DeepSeek). Your SDK only ever holds the TOLVYN key; TOLVYN swaps in the DeepSeek key when forwarding.
+- **Served model:** DeepSeek resolves `deepseek-chat` to a concrete served model server-side, so usage may show as e.g. `deepseek-v4-flash` in the dashboard — it is **billed at the `deepseek-chat` rate** (expected, correctly priced).
+
+---
+
 ## Constructor parameters
 
 The same parameter set applies to `OpenAI`, `AsyncOpenAI`, `Anthropic`, and `AsyncAnthropic`. `Google` accepts a subset (see signature above).

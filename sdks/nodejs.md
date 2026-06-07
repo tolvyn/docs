@@ -171,6 +171,30 @@ As of v1.0.6, the class is named `Google` in source (was `TolvynGoogle` internal
 
 ---
 
+## DeepSeek (OpenAI-compatible)
+
+DeepSeek's API is OpenAI-compatible, so there is **no `DeepSeek` client** — use the `OpenAI` client with `proxyUrl` pointed at the DeepSeek proxy path and `model: "deepseek-chat"`.
+
+```javascript
+import { OpenAI } from 'tolvyn'
+
+const client = new OpenAI({
+  tolvynApiKey: 'tlv_live_...',
+  proxyUrl: 'https://proxy.tolvyn.io/v1/proxy/deepseek/',
+})
+
+const response = await client.chat.completions.create({
+  model: 'deepseek-chat',
+  messages: [{ role: 'user', content: 'Hello' }],
+})
+console.log(response.choices[0].message.content)
+```
+
+- Add your DeepSeek provider key in the **dashboard** (Account → Providers → DeepSeek). Your SDK only ever holds the TOLVYN key; TOLVYN swaps in the DeepSeek key when forwarding.
+- **Served model:** DeepSeek resolves `deepseek-chat` to a concrete served model server-side, so usage may show as e.g. `deepseek-v4-flash` in the dashboard — it is **billed at the `deepseek-chat` rate** (expected, correctly priced).
+
+---
+
 ## Constructor parameters
 
 | Parameter | Type | Default | Description |

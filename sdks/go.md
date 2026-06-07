@@ -197,6 +197,38 @@ If neither the `TolvynAPIKey` field nor the `TOLVYN_API_KEY` environment variabl
 
 ---
 
+## DeepSeek (OpenAI-compatible)
+
+DeepSeek's API is OpenAI-compatible, so there is **no DeepSeek sub-package** — use the **OpenAI** client (`tolvyn-go/openai`) with `ProxyURL` pointed at the DeepSeek proxy path and model `deepseek-chat`.
+
+```go
+client := tolvynopenai.NewClient(tolvyn.ClientOptions{
+    TolvynAPIKey: "tlv_live_...",
+    ProxyURL:     "https://proxy.tolvyn.io/v1/proxy/deepseek/",
+})
+
+resp, err := client.Chat.Completions.New(context.Background(), oai.ChatCompletionNewParams{
+    Model: oai.F(oai.ChatModel("deepseek-chat")),
+    Messages: oai.F([]oai.ChatCompletionMessageParamUnion{
+        oai.ChatCompletionUserMessageParam{
+            Role: oai.F(oai.ChatCompletionUserMessageParamRoleUser),
+            Content: oai.F([]oai.ChatCompletionContentPartUnionParam{
+                oai.ChatCompletionContentPartTextParam{
+                    Text: oai.F("Hello"),
+                    Type: oai.F(oai.ChatCompletionContentPartTextTypeText),
+                },
+            }),
+        },
+    }),
+})
+```
+
+- Use `oai.ChatModel("deepseek-chat")` (a plain string cast) since there is no named constant for it.
+- Add your DeepSeek provider key in the **dashboard** (Account → Providers → DeepSeek). Your code only ever holds the TOLVYN key; TOLVYN swaps in the DeepSeek key when forwarding.
+- **Served model:** DeepSeek resolves `deepseek-chat` to a concrete served model server-side, so usage may show as e.g. `deepseek-v4-flash` in the dashboard — it is **billed at the `deepseek-chat` rate** (expected, correctly priced).
+
+---
+
 ## Attribution headers
 
 Six headers identify who and what made the request:
