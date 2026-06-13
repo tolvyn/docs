@@ -8,7 +8,16 @@ Know your AI cost-of-goods-sold per customer. If you sell AI features to other c
 
 Set the `X-Tolvyn-End-Customer` header on every request. The value is whatever identifier you use for your customers internally — typically a tenant ID, account ID, or short slug.
 
-### SDK
+**No registration step.** A new customer appears in the dashboard, CLI, and API automatically on its first tagged request — there is nothing to pre-register, in code or in the UI.
+
+How you supply the value depends on whether one client serves one customer or many:
+
+- **One client, many customers** (a typical web app or request handler) → set the header **per request**. See [Per-request attribution](#per-request-attribution-multi-tenant-apps) below — this is what most apps want.
+- **One client, one customer** (a per-tenant worker or batch job) → set it once on the constructor, as shown here.
+
+### Single-tenant clients (constructor field)
+
+If a client instance serves exactly one customer for its entire lifetime, set `end_customer` once on the constructor and every request it makes is tagged automatically:
 
 ```python
 from tolvyn import OpenAI
@@ -35,6 +44,8 @@ client := tolvynopenai.NewClient(tolvyn.ClientOptions{
 })
 ```
 
+This sets **one fixed value for the client's lifetime**. It is the wrong default for a request handler that serves many customers — every customer's calls would be tagged as the single value hardcoded here. For that case, use [per-request attribution](#per-request-attribution-multi-tenant-apps).
+
 ### Proxy mode / curl
 
 ```bash
@@ -46,6 +57,47 @@ curl https://proxy.tolvyn.io/v1/proxy/openai/v1/chat/completions \
 ```
 
 Combine with other attribution headers as needed — see [combining](#combining-with-team-insights) below.
+
+---
+
+## Per-request attribution (multi-tenant apps)
+
+Most applications serve many customers through a single shared client. In that case, do **not** set `end_customer` on the constructor — pass the identifier on each request, read from your own user/session/tenant context. A new customer is attributed automatically on its first call, so one shared client can cover thousands of distinct customers with no per-customer setup.
+
+**Python** — pass `extra_headers` on the call:
+
+```python
+from tolvyn import OpenAI
+
+# One shared client — note: no end_customer here.
+client = OpenAI(tolvyn_api_key="tlv_live_...", service="ticket-summarizer")
+
+# Per request, inside your handler — the id comes from your own context:
+resp = client.chat.completions.create(
+    model="gpt-4o",
+    messages=[{"role": "user", "content": prompt}],
+    extra_headers={"X-Tolvyn-End-Customer": current_user.account_id},
+)
+```
+
+**Node** — pass per-request headers as the second argument:
+
+```javascript
+import { OpenAI } from 'tolvyn';
+
+// One shared client — note: no endCustomer here.
+const client = new OpenAI({ tolvynApiKey: 'tlv_live_...', service: 'ticket-summarizer' });
+
+// Per request, inside your handler:
+const resp = await client.chat.completions.create(
+  { model: 'gpt-4o', messages: [{ role: 'user', content: prompt }] },
+  { headers: { 'X-Tolvyn-End-Customer': req.user.accountId } },
+);
+```
+
+### Don't set it in two places
+
+Set the end-customer **either** on the constructor **or** per request — not both on the same client. A per-request header overrides the constructor default, but to stay safe use the exact name `X-Tolvyn-End-Customer`: a mismatched-case header (e.g. `x-tolvyn-end-customer`) can in some setups be sent *alongside* the constructor default as a duplicate, and the proxy reads only the first one — quietly attributing to the wrong value. The clean rule that sidesteps all of this: pick one place to set it. For multi-tenant apps, that's per request — leave the constructor field unset.
 
 ---
 
@@ -174,12 +226,20 @@ Returns top 100 customers by cost, with the response shape above.
 Both can be set on the same request — common in SaaS support tooling or AI-powered customer ops, where an internal user works on behalf of an external customer.
 
 ```python
+# Static attribution on the client; the variable parts per request.
 client = OpenAI(
     tolvyn_api_key="tlv_live_...",
-    user="alice@yourcompany.com",         # your employee
-    end_customer="acme-corp",             # your customer they're serving
     team="support",
     service="ticket-summarizer",
+)
+
+resp = client.chat.completions.create(
+    model="gpt-4o",
+    messages=[{"role": "user", "content": prompt}],
+    extra_headers={
+        "X-Tolvyn-User": agent.email,                 # your employee handling the request
+        "X-Tolvyn-End-Customer": ticket.account_id,   # your customer they're serving
+    },
 )
 ```
 
@@ -197,6 +257,15 @@ If the customers page or `GET /v1/usage/by-end-customer` is empty:
 4. **Verify in raw requests.** `tolvyn requests --limit 5` shows recent metadata — if the `tolvyn_end_customer` column is blank, the header isn't reaching the proxy.
 
 ---
+
+## Choosing the identifier value
+
+The value is stored and displayed verbatim (see [Privacy](#privacy)) — it's the key you see in the dashboard, the CLI, and `GET /v1/usage/by-end-customer`, so choose it deliberately:
+
+- **Opaque id** (a UUID or numeric account ID from your auth system) — stable across customer renames and reveals nothing about who the customer is, but is unreadable at a glance in the dashboard.
+- **Readable slug or name** (e.g. `acme-corp`) — friendly in reports and the dashboard, but can change (a rename starts a new, separate record) and exposes your customer list to anyone with dashboard access.
+
+A common middle ground: send the stable opaque id and map it to a display name inside your own tooling. Whichever you pick, send it **consistently** — the id *is* the customer key, so changing it for an existing customer splits their history into two records.
 
 ## Privacy
 
