@@ -9,7 +9,7 @@ Every endpoint that TOLVYN exposes, sourced from `cmd/tolvyn-server/main.go` rou
 | Concern | Value |
 |---|---|
 | Management API base | `https://api.tolvyn.io` |
-| Proxy base | `https://proxy.tolvyn.io/v1/proxy/{provider}/` (`openai`, `anthropic`, `google`) |
+| Proxy base | `https://proxy.tolvyn.io/v1/proxy/{provider}/` (`openai`, `anthropic`, `google`, `deepseek`) |
 | Content type | `application/json` (unless noted) |
 | Client auth | `Authorization: Bearer <JWT>` from `POST /v1/auth/login` |
 | Operator auth | `Authorization: Bearer <TOLVYN_OPERATOR_TOKEN>` on `/v1/operator/*` |
@@ -252,8 +252,8 @@ All require JWT. Provider keys are AES-256-GCM encrypted server-side with a tena
 
 | Field | Type | Required | Description |
 |---|---|---|---|
-| `provider` | string | yes | `openai`, `anthropic`, or `google` |
-| `key` | string | yes | Provider API key (`sk-...`, `sk-ant-...`, etc.) |
+| `provider` | string | yes | `openai`, `anthropic`, `google`, or `deepseek` |
+| `key` | string | yes | Provider API key (`sk-...`, `sk-ant-...`, etc.). DeepSeek keys are `sk-...` (OpenAI-compatible). |
 
 ```bash
 curl -X POST https://api.tolvyn.io/v1/provider-keys \
@@ -916,7 +916,7 @@ A `heartbeat` event is emitted every 15 seconds so intermediate proxies do not c
 
 ## Proxy
 
-Proxy endpoints accept the full OpenAI / Anthropic / Google API on the corresponding path prefix.
+Proxy endpoints accept the full OpenAI / Anthropic / Google API on the corresponding path prefix. DeepSeek is also routable in proxy mode (its API is OpenAI-compatible). There is no DeepSeek SDK class — proxy mode only.
 
 ### `/v1/proxy/openai/*`
 
@@ -942,6 +942,17 @@ curl https://proxy.tolvyn.io/v1/proxy/anthropic/v1/messages \
 ### `/v1/proxy/google/*`
 
 Same pattern. The TOLVYN API key may be passed as `Authorization: Bearer` or `x-goog-api-key`.
+
+### `/v1/proxy/deepseek/*`
+
+DeepSeek's API is OpenAI-compatible — point the OpenAI client at the DeepSeek proxy path, or call it directly. Proxy mode only; there is no `tolvyn` DeepSeek SDK class. Add a DeepSeek provider key under **Account → Provider Connections** first.
+
+```bash
+curl https://proxy.tolvyn.io/v1/proxy/deepseek/v1/chat/completions \
+  -H "Authorization: Bearer tlv_live_..." \
+  -H "Content-Type: application/json" \
+  -d '{"model":"deepseek-chat","messages":[{"role":"user","content":"Hello"}]}'
+```
 
 ### Proxy-specific status codes
 

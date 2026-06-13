@@ -139,6 +139,28 @@ X-Tolvyn-Service: chatbot-api
 {"model":"gpt-4o","messages":[{"role":"user","content":"Hello"}]}
 ```
 
+### DeepSeek (proxy mode only)
+
+DeepSeek's API is OpenAI-compatible, so point the OpenAI client at the DeepSeek proxy path. There is no `tolvyn` DeepSeek SDK class — DeepSeek is available in proxy mode only. Add your DeepSeek key first under **Account → Provider Connections** (or `tolvyn providers add deepseek`); DeepSeek keys are `sk-...` (OpenAI format).
+
+```python
+from openai import OpenAI
+
+client = OpenAI(
+    api_key="tlv_live_...",                                # TOLVYN key
+    base_url="https://proxy.tolvyn.io/v1/proxy/deepseek"   # TOLVYN proxy (DeepSeek)
+)
+
+response = client.chat.completions.create(
+    model="deepseek-chat",
+    messages=[{"role": "user", "content": "Hello"}],
+    extra_headers={
+        "X-Tolvyn-Team": "engineering",
+        "X-Tolvyn-Service": "chatbot-api"
+    }
+)
+```
+
 ### Important: TOLVYN is in your critical path
 
 In proxy mode, if `proxy.tolvyn.io` is unreachable, your AI call fails. There is no automatic fallback.

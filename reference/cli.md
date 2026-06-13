@@ -284,7 +284,7 @@ Key revoked.
 
 ### `tolvyn providers`
 
-Manage provider API keys (OpenAI / Anthropic / Google).
+Manage provider API keys (OpenAI / Anthropic / Google / DeepSeek).
 
 #### `tolvyn providers list`
 
@@ -300,7 +300,7 @@ anthropic     b6e9c2a3-7d11-4a8e-9c0f-3b7d2c4e5f6a  1      2026-05-17 14:02
 
 #### `tolvyn providers add <provider>`
 
-`<provider>` must be one of `openai`, `anthropic`, `google`. Prompts for the API key (hidden input).
+`<provider>` must be one of `openai`, `anthropic`, `google`, `deepseek`. Prompts for the API key (hidden input). DeepSeek is proxy-mode only (no SDK class).
 
 ```bash
 tolvyn providers add openai

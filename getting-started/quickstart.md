@@ -212,6 +212,9 @@ curl https://proxy.tolvyn.io/v1/proxy/anthropic/v1/messages ...
 
 # Google
 curl https://proxy.tolvyn.io/v1/proxy/google/v1beta/models/...
+
+# DeepSeek (OpenAI-compatible; proxy mode only — no DeepSeek SDK)
+curl https://proxy.tolvyn.io/v1/proxy/deepseek/v1/chat/completions ...
 ```
 
 ---
