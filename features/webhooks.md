@@ -183,8 +183,8 @@ Source: `PricingChangeData` struct. Fires when a provider's published price for 
 | Field | Type | Description |
 |---|---|---|
 | `model_id` | string | Provider's model identifier |
-| `provider` | string | `openai` / `anthropic` / `google` |
-| `field_changed` | string | `input`, `output`, or `cached` |
+| `provider` | string | `openai` / `anthropic` / `google` / `deepseek` |
+| `field_changed` | string | One of `input`, `output`, `cached`, `cache_write`, `cache_write_1h`, `input_above_200k`, `output_above_200k`, `cached_above_200k`, `cache_write_above_200k` |
 | `previous_value` | number | Old price (USD per million tokens) |
 | `new_value` | number | New price (USD per million tokens) |
 | `percent_change` | number | `(new - prev) / prev * 100`; negative means price dropped |

@@ -118,7 +118,7 @@ From `recordPayload`:
 | `request_id` | UUID linking to the `requests` table |
 | `cost_microdollars` | Exact cost as int64 — never a float |
 | `hierarchy_path` | `/team/service[/agent]` for forensic drill-down |
-| `provider` | `openai`, `anthropic`, `google` |
+| `provider` | `openai`, `anthropic`, `google`, `deepseek` |
 | `model_id` | Exact model used (e.g. `gpt-4o-2024-08-06`) |
 | `model_family` | Normalized family (e.g. `gpt-4o`) |
 | `modality` | `chat`, `embedding`, `audio`, `image` |

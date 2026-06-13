@@ -203,7 +203,7 @@ Query parameters:
 
 | Param | Default | Description |
 |---|---|---|
-| `provider` | — | Filter by `openai`, `anthropic`, `google` |
+| `provider` | — | Filter by `openai`, `anthropic`, `google`, `deepseek` |
 | `model_id` | — | Specific model ID |
 | `days` | `90` | Look-back window, 1–365 |
 

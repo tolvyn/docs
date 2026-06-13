@@ -27,9 +27,9 @@ When a price differs, a row is inserted into `pricing_candidates` with `status =
 
 | Column | Value |
 |---|---|
-| `provider` | `openai` / `anthropic` / `google` |
+| `provider` | `openai` / `anthropic` / `google` / `deepseek` |
 | `model_id` | The provider's official model ID |
-| `field_changed` | `input`, `output`, `cached`, or `context_window` |
+| `field_changed` | One of `input`, `output`, `cached`, `cache_write`, `cache_write_1h`, `input_above_200k`, `output_above_200k`, `cached_above_200k`, `cache_write_above_200k` |
 | `detected_value` | What the scraper found |
 | `current_value` | What TOLVYN currently has |
 | `source_url` | The URL the scraper read |
