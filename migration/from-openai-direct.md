@@ -112,9 +112,11 @@ No configuration required. The dashboard is live the moment the first request go
 
 ---
 
-## Fail-open guarantee
+## Reliability: proxy mode vs SDK mode
 
-If TOLVYN ever has an issue, requests automatically pass through to OpenAI. Your application never goes down because of TOLVYN. This is by design — TOLVYN is in your request path for observability, not for availability.
+The setup above uses **proxy mode** (a base-URL change). In proxy mode, TOLVYN is in your request path: if `proxy.tolvyn.io` is unreachable, your AI call fails — there is **no automatic fallback**.
+
+If you need TOLVYN to never be a single point of failure, use **SDK mode** instead (`from tolvyn import OpenAI`, with your provider key set). SDK mode is **fail-open**: when the proxy is unreachable, the SDK automatically retries the request directly against the provider, so your application keeps working. See [Integration Modes](../integration-modes.md) for the trade-off.
 
 ---
 
