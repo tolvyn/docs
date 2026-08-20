@@ -57,7 +57,7 @@ A few design decisions worth noting:
 
 **HMAC on top of the hash.** The SHA-256 chain catches accidental or external modification. The HMAC-SHA256 (keyed with a server secret) makes it harder for someone with direct DB access to recompute a valid hash after tampering. Both layers serve different threat models.
 
-**Append-only at the application level.** The application never issues `UPDATE` or `DELETE` on `ledger_records`. PostgreSQL Row Level Security policies enforce this at the DB level, not just the application layer.
+**Append-only on the write path.** Nothing in the request path ever issues `UPDATE` or `DELETE` against `ledger_records` — a metered request only ever appends. Row Level Security scopes every tenant-scoped request-path query to one tenant, so one tenant's queries can never reach another's records. Two caveats worth stating plainly, because "append-only" invites a stronger reading than the system earns. **RLS enforces tenant isolation, not append-only** — it is a `USING` predicate on tenant id, not a prohibition on writes — and it covers the tenant-scoped request path specifically: the operator API, background workers, sweepers and auth bootstrap deliberately run on a role that bypasses it, because their work is genuinely cross-tenant. **And retention is a separate, scheduled path that does delete**: records past a plan's retention window are removed nightly, oldest first. So the chain is append-only for as long as a record lives, and the retention window is what decides how long that is.
 
 ## The gzip bug
 
