@@ -681,7 +681,7 @@ tolvyn ledger verify || { echo "Ledger broken — investigate"; exit 1; }
 
 #### `tolvyn ledger export`
 
-Stream the full ledger as CSV — includes `record_hash`, `previous_hash`, and `hmac_signature` so the export can be verified offline. The fundamental audit-evidence flow: export, hand to auditor with the HMAC secret, auditor verifies independently.
+Stream the full ledger as CSV — includes `record_hash`, `previous_hash`, and `hmac_signature` so the export can be verified offline. The audit-evidence flow is: export, hand the CSV to the auditor, auditor verifies the hash chain independently. **Never share the signing secret with an auditor** — they do not need it (the `record_hash` chain is keyed on nothing and re-derives from each record's own fields), there is one secret per deployment, and anyone holding it could mint a valid signature for any record of any tenant. See [Ledger](../features/ledger.md) for the canonical form an independent verifier must reproduce.
 
 | Flag | Default | Description |
 |---|---|---|
