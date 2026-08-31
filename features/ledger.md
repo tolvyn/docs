@@ -2,7 +2,7 @@
 
 The ledger is TOLVYN's answer to the question: **how do I prove what my AI costs were on a specific date, to an auditor who doesn't trust my dashboard?**
 
-Every request that flows through TOLVYN is recorded in a SHA-256 hash-chained, HMAC-signed ledger. The chain is verifiable end-to-end at any time. Tampering with any historical record breaks the chain at that point — detectably, without external consensus, in milliseconds.
+Every request **metered** by TOLVYN is recorded in a SHA-256 hash-chained, HMAC-signed ledger. The chain is verifiable end-to-end at any time. Tampering with any historical record breaks the chain at that point — detectably, without external consensus, in milliseconds.
 
 This is what separates TOLVYN from "AI usage analytics." Analytics dashboards can be edited. Audit ledgers cannot.
 
@@ -227,8 +227,8 @@ control, not auditor evidence. **There is one signing secret per deployment**, s
 can mint a valid signature for any record of any tenant — which is exactly what an auditor must not
 be able to do, and exactly why handing it over destroys the control it was meant to provide.
 
-On the **Scale** and **Enterprise** plans a signed evidence package is available — the records, a
-signed manifest, and a standalone verifier the auditor runs themselves. It is the stronger version of
+On the **Scale** and **Enterprise** plans a signed [evidence package](evidence-packages.md) is
+available — the records, a signed manifest, and a standalone verifier the auditor runs themselves. It is the stronger version of
 this flow and it also requires no secret. On Free, Starter and Growth the CSV above is the export to
 use (CSV export requires Starter or higher).
 
@@ -253,6 +253,14 @@ use (CSV export requires Starter or higher).
   the records you hold were not altered and that they follow one another. It cannot prove none is
   missing from before the range you verified: a record removed from the *start* of a chain leaves no
   gap between two survivors, only a chain that begins later than it once did.
+- **That every metered request produced a record.** The ledger append runs in a savepoint inside the
+  metering transaction. If it fails, the savepoint rolls back alone and the transaction still commits
+  — so the request is metered and charged while its ledger record is never written. The failure is
+  logged and alerted rather than silent, but **it leaves no trace in the chain**: sequence numbers are
+  allocated from the highest existing record at insert time, so a rolled-back append consumes no
+  number and the next record takes the one it would have used. There is no gap for verification to
+  find. A verified chain therefore proves that the records you hold are intact and consecutive; it
+  does not prove that a record was written for every request you were billed for.
 - **That records are kept forever.** They are not — see [Retention and the verified
   range](#retention-and-the-verified-range).
 
@@ -294,8 +302,8 @@ ledger CSV export is available from **Starter** up, and signed evidence packages
 For an external auditor (SOC 2, ISO 27001, financial audit): export the ledger CSV for the audit
 period and give them the canonical-form rules above so they can re-derive the chain themselves. **The
 signing secret is not part of what you hand over** — the hash chain verifies without it. On Scale and
-Enterprise, a signed evidence package bundles the records, a signed manifest and a standalone
-verifier, which is the cleaner hand-off. Either way the auditor verifies independently, without
+Enterprise, a signed [evidence package](evidence-packages.md) bundles the records, a signed
+manifest and a standalone verifier, which is the cleaner hand-off. Either way the auditor verifies independently, without
 trusting your dashboard.
 
 Check first that the audit period fits inside your plan's [retention
@@ -334,13 +342,18 @@ For SaaS customers who need a verified report of AI usage on their behalf, filte
 ## Operational notes
 
 - **The ledger is not a queue.** Records are inserted synchronously inside the request's metering
-  transaction. There is no separate "ledger lag" — if the request was metered, the ledger row exists.
-  Two caveats on reading that as a strict one-to-one pairing. **Retention breaks it:** the nightly
-  sweep deletes from `ledger_records` and from `requests` as separate statements, so the pairing
-  does not survive a record ageing out, and does not hold across the two deletes. **And a ledger row
-  attests that a request was metered, not that it completed:** a response stream truncated partway —
-  by a provider reset or a timeout — is metered on the bytes that arrived and produces a record
-  indistinguishable from a complete one.
+  transaction. There is no separate "ledger lag" — the ledger row is written in the same transaction
+  as the request it describes. Three caveats on reading that as a strict one-to-one pairing.
+  **Retention breaks it:** the nightly sweep deletes from `ledger_records` and from `requests` as
+  separate statements, so the pairing does not survive a record ageing out, and does not hold across
+  the two deletes. **A ledger row attests that a request was metered, not that it completed:** a
+  response stream truncated partway — by a provider reset or a timeout — is metered on the bytes
+  that arrived and produces a record indistinguishable from a complete one. **And the ledger append
+  can fail on its own without failing the request:** it runs inside a savepoint, and if the append
+  errors — an advisory-lock failure, a database error — the savepoint is rolled back, the failure is
+  logged and alerted, and the surrounding transaction still commits. The request is metered and
+  charged; the ledger record for it does not exist. See [what it does NOT
+  prove](#what-ledger-integrity-proves--and-what-it-does-not-prove).
 - **The chain survives row-level security** because ledger appends run within the tenant-scoped transaction context. Cross-tenant reads are still blocked.
 - **Backups must be physical, point-in-time, or logical with `pg_dump --no-data --schema-only` plus `pg_dump --data-only --table=ledger_records`.** Avoid tools that re-order rows during export — the SQL primary key on `sequence_number` is unique but verification walks in `sequence_number ASC` order, so any inserter that doesn't preserve order can break verification.
 - **Don't manually edit the `ledger_records` table.** The application enforces RLS, advisory locks, and atomic inserts. Direct SQL bypasses all of that and almost certainly breaks the chain.
@@ -351,4 +364,5 @@ For SaaS customers who need a verified report of AI usage on their behalf, filte
 
 - [Reconciliation](reconciliation.md) — spot-check the ledger against provider invoices
 - [Budgets](budgets.md) — what `budget_status` and `enforcement_action` reflect
+- [Evidence Packages](evidence-packages.md) — hand a signed, independently verifiable slice of the chain to an auditor
 - [API Reference: Ledger](../reference/api.md#ledger)
