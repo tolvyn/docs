@@ -150,6 +150,8 @@ This is the same limitation the ledger page records under [what it does NOT prov
 
 If completeness from origin matters for your audit, request a package whose period starts at the beginning of the chain and check that `seq_from` is `1`.
 
+**Contiguity is also not the same as "a record exists for every request you were billed for."** The ledger append runs in a savepoint inside the metering transaction; if it fails, the transaction still commits, so a request can be metered and charged with no ledger record written. Sequence numbers are allocated from the highest record present at insert time, so a rolled-back append consumes no number — the next record takes the one it would have used, and **no gap appears for the verifier to find**. TOLVYN logs and alerts on that failure internally, but a package cannot attest to a record that was never written. Reconciling the package total against the provider invoice is what closes that gap; see [Reconciliation](reconciliation.md).
+
 ### And the limits the ledger itself has
 
 An evidence package inherits every limitation of the underlying ledger. It does not prove the content of prompts or responses (TOLVYN does not store them), that the provider's invoice matches (use [Reconciliation](reconciliation.md)), or that requests which bypassed the proxy were captured — they never reached the ledger at all.
