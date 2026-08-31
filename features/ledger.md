@@ -227,8 +227,8 @@ control, not auditor evidence. **There is one signing secret per deployment**, s
 can mint a valid signature for any record of any tenant — which is exactly what an auditor must not
 be able to do, and exactly why handing it over destroys the control it was meant to provide.
 
-On the **Scale** and **Enterprise** plans a signed evidence package is available — the records, a
-signed manifest, and a standalone verifier the auditor runs themselves. It is the stronger version of
+On the **Scale** and **Enterprise** plans a signed [evidence package](evidence-packages.md) is
+available — the records, a signed manifest, and a standalone verifier the auditor runs themselves. It is the stronger version of
 this flow and it also requires no secret. On Free, Starter and Growth the CSV above is the export to
 use (CSV export requires Starter or higher).
 
@@ -294,8 +294,8 @@ ledger CSV export is available from **Starter** up, and signed evidence packages
 For an external auditor (SOC 2, ISO 27001, financial audit): export the ledger CSV for the audit
 period and give them the canonical-form rules above so they can re-derive the chain themselves. **The
 signing secret is not part of what you hand over** — the hash chain verifies without it. On Scale and
-Enterprise, a signed evidence package bundles the records, a signed manifest and a standalone
-verifier, which is the cleaner hand-off. Either way the auditor verifies independently, without
+Enterprise, a signed [evidence package](evidence-packages.md) bundles the records, a signed
+manifest and a standalone verifier, which is the cleaner hand-off. Either way the auditor verifies independently, without
 trusting your dashboard.
 
 Check first that the audit period fits inside your plan's [retention
@@ -351,4 +351,5 @@ For SaaS customers who need a verified report of AI usage on their behalf, filte
 
 - [Reconciliation](reconciliation.md) — spot-check the ledger against provider invoices
 - [Budgets](budgets.md) — what `budget_status` and `enforcement_action` reflect
+- [Evidence Packages](evidence-packages.md) — hand a signed, independently verifiable slice of the chain to an auditor
 - [API Reference: Ledger](../reference/api.md#ledger)
