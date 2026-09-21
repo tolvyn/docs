@@ -261,17 +261,18 @@ use (CSV export requires Starter or higher).
   number and the next record takes the one it would have used. There is no gap for verification to
   find. A verified chain therefore proves that the records you hold are intact and consecutive; it
   does not prove that a record was written for every request you were billed for.
-- **That records are kept forever.** They are not — see [Retention and the verified
+- **That attribution is kept forever.** Records are; the attribution fields on old requests are
+  redacted at the plan's window — see [Retention and the verified
   range](#retention-and-the-verified-range).
 
 ---
 
 ## Retention and the verified range
 
-Ledger records do not live forever. Each plan has a data retention window, and records older than
-that window are removed:
+Ledger records are not deleted by retention, and neither are request rows. Each plan has a data
+retention window, and a nightly pass **redacts** requests older than that window in place:
 
-| Plan | Ledger retention |
+| Plan | Retention window |
 |---|---|
 | Free | 7 days |
 | Starter | 30 days |
@@ -279,17 +280,20 @@ that window are removed:
 | Scale | 365 days |
 | Enterprise | Unlimited |
 
-Retention runs nightly and removes the **oldest** records first, so a chain past its window begins at
-a higher sequence number than it originally did. This does not weaken what remains: every record
-still present is internally verifiable and its sequence numbers are still contiguous. What left the
-window is simply gone — and, as above, a chain truncated at the start leaves nothing behind for
-verification to detect.
+What redaction clears on a request past its window: `tolvyn_user`, `tolvyn_end_customer`,
+`agent_name`, `feature_tag`, `service_name`, `team_id`, and `tags` — the attribution dimensions —
+and it stamps `redacted_at`. What remains: the request row itself with its model, token counts,
+cost, latency, status code and timestamp, and every ledger record, untouched. The chain therefore
+keeps its full sequence range and verifies end to end regardless of the window; what ages out is
+the ability to attribute old spend to a user, end customer, agent, feature, service or team, not
+the record of the spend. Redaction is irreversible and happens at the window, not after a grace
+period.
 
 **Two consequences worth planning around.** If you must retain records for a fixed period — whatever
 your regulator, auditor or contracts require — pick a plan whose window covers it, and check the
 number above against your own obligation rather than assuming the default is enough. And upgrading a
-plan does not bring back records that have already aged out: a longer window applies from the point
-you have it, not retroactively. Export before records age out if you need to hold them longer; the
+plan does not restore attribution that has already been redacted: a longer window applies from the
+point you have it, not retroactively. Export before attribution ages out if you need to hold it longer; the
 ledger CSV export is available from **Starter** up, and signed evidence packages on **Scale** and
 **Enterprise**.
 
