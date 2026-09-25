@@ -18,10 +18,14 @@ Go to [app.tolvyn.io/signup](https://app.tolvyn.io/signup).
 
 You will need:
 - Your name
-- A work email
-- A password (minimum 8 characters)
+- A work email you can open right now
+- A password of **at least 12 characters**
 
-You start on the **Free** plan: 10,000 included requests per month, no card required, no time limit. You are logged in immediately — no email verification step.
+You start on the **Free** plan: 10,000 included requests per month, no card required, no time limit.
+
+**Verify your email before you try to log in.** Signing up sends a verification
+email; until you open the link, login answers `403 email_unverified`. The link is
+**single-use and valid for 24 hours** — open it once, from any device.
 
 ---
 
@@ -38,7 +42,7 @@ Pick a provider and paste the corresponding key:
 | Google | API key for Generative Language API | [aistudio.google.com/apikey](https://aistudio.google.com/apikey) |
 | DeepSeek | `sk-...` | [platform.deepseek.com/api_keys](https://platform.deepseek.com/api_keys) |
 
-The provider key is encrypted with envelope encryption (AES-256-GCM, tenant-scoped DEK) and stored server-side. Your application code never holds it again. TOLVYN uses it to authenticate to the provider when proxying your requests.
+The provider key is encrypted with AES-256-GCM under a server-side master key, and your tenant id and the provider name are bound into the ciphertext as additional authenticated data — so a stored key cannot be decrypted for a different tenant or a different provider, even by the server itself. Your application code never holds it again. TOLVYN uses it to authenticate to the provider when proxying your requests.
 
 You can add keys for any of these providers from the same dashboard. DeepSeek is OpenAI-compatible — see [Integration Modes → DeepSeek](../integration-modes.md#deepseek-openai-compatible) for the client recipe.
 
@@ -251,9 +255,15 @@ You now have a working metered request. The next things to set up depend on your
 
 ## Troubleshooting
 
-**Request returns 401 with `invalid_token`** — your TOLVYN key is wrong, expired, or revoked. Check the prefix in **API Keys** matches the key you're using.
+**Login returns 403 with `email_unverified`** — you have not opened the verification link yet. Check your spam folder. The link is single-use and valid for 24 hours; if it has expired or been used, request a new one from the login page.
 
-**Request returns 502 with `provider_key_missing`** — you have not added a provider key for the provider you're calling. Go back to Step 2.
+**Signup returns 400 with `password_too_short`** — passwords must be at least 12 characters. (`password_too_long` means over 72 bytes, which is the bcrypt limit.)
+
+**Request returns 401 with `invalid_key`** — your TOLVYN key is wrong, expired, or revoked. Check the prefix in **API Keys** matches the key you're using.
+
+**Request returns 409 with `provider_credentials_missing`** — you have not added a provider key for the provider you're calling. Go back to Step 2.
+
+**Request returns 400 with `unknown_provider`** — the provider segment in the URL is not one of `openai`, `anthropic`, `google`, `deepseek` or `custom`.
 
 **Request returns 503** — TOLVYN proxy is unreachable. In SDK mode this triggers the fail-open path (the request continues directly to the provider, but is not metered). In proxy mode the request fails.
 
