@@ -281,6 +281,17 @@ Source: `tolvyn.IsProxyError()`. The SDK falls back when either:
 
 Source: `tolvyn.ShouldNotFailOpen()`. The SDK does **not** fall back when the status code is in `[400, 500)` excluding `503`. Real provider errors (`400`, `401`, `403`, `404`, `422`, `429`) propagate as-is.
 
+**Nor does it fall back on `500`, `502` or `504`** — and this is worth stating
+explicitly, because it is the gap most readers assume is covered. `IsProxyError`
+returns `statusCode == 503` and nothing else when there is no transport error,
+so any other 5xx surfaces to your code. A proxy returning `502` while it
+restarts is "unreachable" from your application's point of view, and fail-open
+will **not** cover it.
+
+Fail-open also does nothing at all when `ProviderAPIKey` is empty: the transport
+returns early (`if t.providerAPIKey == "" { return resp, err }`) before any of
+the checks above are reached.
+
 ### Fallback URL composition
 
 Unlike the Python and Node SDKs, the Go SDK **strips the `/v1/proxy/{provider}` prefix from the request path** before building the fallback URL:
@@ -303,6 +314,15 @@ This produces correct fallback URLs for Anthropic (where the underlying SDK alre
 ### Metering during fail-open
 
 Requests that fall back to the provider directly **bypass the TOLVYN proxy**. They are not metered, not budget-checked, and not recorded in the ledger for that call. The dashboard shows no row.
+
+The fallback request also has its **`X-Tolvyn-*` attribution headers stripped**
+before it is sent — they are meaningless to the provider — so a fallen-back call
+carries no team, service, user, feature, agent or end-customer tag anywhere.
+
+Nothing reports the request afterwards. There is no queue, no beacon and no
+reconciliation: spend during a TOLVYN outage is permanently invisible to TOLVYN,
+and your caller sees an ordinary success with no indication that metering was
+skipped.
 
 ### Disabling fail-open
 

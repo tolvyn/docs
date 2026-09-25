@@ -8,14 +8,14 @@ No. TOLVYN does not log, store, or inspect the content of your prompts or AI res
 
 ## What happens if TOLVYN goes down?
 
-The SDKs support **fail-open mode** (enabled by default). If the proxy is unreachable, the SDK routes the request directly to the AI provider using your provider key — so your application keeps working.
+The SDKs support **fail-open mode** (enabled by default, and only active when a provider key is configured). If the proxy is unreachable, the SDK routes the request directly to the AI provider using your provider key — so your application keeps working.
 
 ```python
 from tolvyn import OpenAI
 
 client = OpenAI(
     tolvyn_api_key="tlv_live_YOUR_KEY",
-    openai_api_key="sk-...",   # fallback — used only if the proxy is unreachable
+    openai_api_key="sk-...",   # REQUIRED for fail-open; used only if the proxy is unreachable
     fail_open=True,            # default
 )
 ```

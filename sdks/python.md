@@ -1,5 +1,11 @@
 # Python SDK
 
+> **⚠️ UNVERIFIED AGAINST SOURCE.** This page documents behaviour we have not
+> been able to check against the SDK's code. The fail-open description below is
+> written to match the Go SDK, which *has* been verified
+> ([Go SDK → Fail-open behavior](go.md#fail-open-behavior)); treat every claim
+> here as a statement of intent until it is confirmed. If the two disagree, the
+> Go page is the one that was read against source.
 The `tolvyn` Python package wraps the official `openai`, `anthropic`, and `google-generativeai` SDKs so requests route through the TOLVYN proxy. Your existing code keeps working; you change the import and add a TOLVYN API key.
 
 Current version: **0.1.7**.

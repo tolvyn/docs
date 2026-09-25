@@ -8,7 +8,7 @@ TOLVYN offers two integration modes. Pick one based on your reliability requirem
 |------------|----------|------------|
 | Setup | Install `tolvyn` package | Set `OPENAI_BASE_URL` env var |
 | Languages | Python, Node.js, Go | Any |
-| Fail-open (auto-fallback to provider direct) | ✅ Yes | ❌ No — request fails if TOLVYN is unreachable |
+| Fail-open (auto-fallback to provider direct) | ✅ Yes — **requires a provider key**; covers connection failures and `503`, not `500`/`502`/`504` | ❌ No — request fails if TOLVYN is unreachable |
 | Latency overhead | <50ms | <50ms |
 | TOLVYN in critical path | No (fails open) | Yes |
 | Recommended for | Production workloads | Prototyping, internal tools, non-critical batch |
@@ -21,7 +21,7 @@ TOLVYN offers two integration modes. Pick one based on your reliability requirem
 
 SDK mode is a drop-in replacement for the OpenAI or Anthropic SDK. Install the `tolvyn` package, change one import line, and your calls are metered.
 
-The key advantage: **if TOLVYN is unreachable, the SDK automatically retries the request directly to OpenAI or Anthropic.** Your AI never stops working.
+The key advantage: **if TOLVYN is unreachable, the SDK retries the request directly to OpenAI or Anthropic — provided you configured a provider key.** Your AI never stops working.
 
 ### Python
 
@@ -34,7 +34,7 @@ client = OpenAI(api_key="sk-...")
 from tolvyn import OpenAI
 client = OpenAI(
     tolvyn_api_key="tlv_live_...",   # your TOLVYN key
-    openai_api_key="sk-...",          # your OpenAI key (used for fail-open fallback)
+    openai_api_key="sk-...",          # REQUIRED for fail-open; no key, no fallback
     team="engineering",
     service="chatbot-api"
 )
@@ -57,7 +57,7 @@ const client = new OpenAI({ apiKey: 'sk-...' })
 import { OpenAI } from 'tolvyn'
 const client = new OpenAI({
   tolvynApiKey: 'tlv_live_...',
-  openAIApiKey: 'sk-...',        // used for fail-open fallback
+  openAIApiKey: 'sk-...',        // REQUIRED for fail-open; no key, no fallback
   team: 'engineering',
   service: 'chatbot-api'
 })
@@ -224,14 +224,14 @@ openAIApiKey: 'sk-...'            // add fallback key
 
 **What TOLVYN guarantees:**
 - Proxy latency overhead: <50ms p99
-- SDK fail-open: automatic fallback within 5 seconds of detecting proxy unreachability
+- SDK fail-open: fallback on connection failure, timeout or `503`. **Not** on `500`, `502` or `504`. The delay is whatever the underlying transport takes to fail — the Go SDK sets a 30s `ResponseHeaderTimeout`, so a hung proxy can take that long before the fallback starts
 - No prompt modification: TOLVYN never modifies your prompts or messages
 - No response modification: TOLVYN never modifies provider responses
 - No content storage: TOLVYN stores metadata (model, tokens, cost, latency) only — never prompt text or response content
 
 **What TOLVYN does not guarantee:**
 - Provider availability (OpenAI, Anthropic, Google, DeepSeek outages are outside TOLVYN's control)
-- 100% metering coverage in SDK mode (fail-open requests bypass metering)
+- Metering covers every request that reaches TOLVYN. **Fail-open requests do not reach TOLVYN and are therefore not metered** — they are not counted, not budget-checked, and not in the ledger. If the proxy is down for an hour, that hour of spend is invisible
 
 **Health endpoint:**
 ```
@@ -247,7 +247,7 @@ Use this for uptime monitoring in proxy mode.
 
 Before going to production with TOLVYN:
 
-- [ ] **SDK mode**: Install `tolvyn` package, set both `tolvyn_api_key` and provider `api_key` for fail-open
+- [ ] **SDK mode**: Install `tolvyn` package, set both `tolvyn_api_key` and provider `api_key` — the provider key is **required** for fail-open, not optional
 - [ ] **Proxy mode**: Set up uptime monitoring on `proxy.tolvyn.io/health`
 - [ ] Set `X-Tolvyn-Team` and `X-Tolvyn-Service` headers — required for cost attribution
 - [ ] Create a budget with hard mode for each team or service

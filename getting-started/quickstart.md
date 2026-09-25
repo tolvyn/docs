@@ -82,7 +82,7 @@ from tolvyn import OpenAI
 
 client = OpenAI(
     tolvyn_api_key="tlv_live_aB3xK9mP2vQ8nF4hR7sT1uW5yE6dC0gJ",
-    openai_api_key="sk-...",        # recommended: enables automatic fail-open
+    openai_api_key="sk-...",        # REQUIRED for fail-open; without it there is no fallback
     team="engineering",
     service="my-app",
 )
@@ -105,7 +105,7 @@ import { OpenAI } from 'tolvyn';
 
 const client = new OpenAI({
   tolvynApiKey: 'tlv_live_aB3xK9mP2vQ8nF4hR7sT1uW5yE6dC0gJ',
-  openAIApiKey: 'sk-...',           // recommended: enables automatic fail-open
+  openAIApiKey: 'sk-...',           // REQUIRED for fail-open; without it there is no fallback
   team: 'engineering',
   service: 'my-app',
 });
@@ -138,7 +138,7 @@ import (
 func main() {
     client := tolvynopenai.NewClient(tolvyn.ClientOptions{
         TolvynAPIKey:   "tlv_live_aB3xK9mP2vQ8nF4hR7sT1uW5yE6dC0gJ",
-        ProviderAPIKey: "sk-...",        // recommended: enables automatic fail-open
+        ProviderAPIKey: "sk-...",        // REQUIRED for fail-open; without it there is no fallback
         Team:           "engineering",
         Service:        "my-app",
     })
@@ -176,9 +176,20 @@ curl https://proxy.tolvyn.io/v1/proxy/openai/v1/chat/completions \
   }'
 ```
 
-> **Why add your provider key?** If TOLVYN's proxy is unreachable, the SDK
-> automatically retries the request directly against the provider. Your AI
-> never stops working. Omit it only if you want hard failure on TOLVYN outages.
+> **Why add your provider key?** It is what makes fail-open possible. If the
+> SDK cannot reach TOLVYN, it retries the request directly against the provider
+> using that key. **Without the provider key there is no fallback at all** — the
+> key is required for this behaviour, not merely recommended.
+>
+> **What fail-open covers, precisely** (verified in the Go SDK; see
+> [Fail-open behavior](../sdks/go.md#fail-open-behavior)): connection refused,
+> DNS failure, timeout, EOF, connection reset, and **HTTP 503**. It does **not**
+> cover `500`, `502` or `504` — those propagate to your code as errors. It does
+> not cover 4xx, which are real API errors and should not be retried.
+>
+> **A fallen-back request is not metered.** It goes straight to the provider,
+> its `X-Tolvyn-*` attribution headers are stripped, and no row appears in your
+> dashboard. Your AI keeps working; that spend is invisible to TOLVYN.
 
 ### Using Anthropic or Google instead?
 
@@ -191,7 +202,7 @@ from tolvyn import Anthropic
 
 client = Anthropic(
     tolvyn_api_key="tlv_live_...",
-    anthropic_api_key="sk-ant-...",   # recommended: enables automatic fail-open
+    anthropic_api_key="sk-ant-...",   # REQUIRED for fail-open; without it there is no fallback
     team="engineering",
     service="my-app",
 )
@@ -265,7 +276,9 @@ You now have a working metered request. The next things to set up depend on your
 
 **Request returns 400 with `unknown_provider`** — the provider segment in the URL is not one of `openai`, `anthropic`, `google`, `deepseek` or `custom`.
 
-**Request returns 503** — TOLVYN proxy is unreachable. In SDK mode this triggers the fail-open path (the request continues directly to the provider, but is not metered). In proxy mode the request fails.
+**Request returns 503** — TOLVYN proxy is unreachable. In SDK mode this triggers the fail-open path, if a provider key is configured: the request continues directly to the provider but is **not metered**. In proxy mode the request fails.
+
+**Request returns 500, 502 or 504** — these do **not** trigger fail-open. The SDK surfaces them to your code. Only connection-level failures and `503` fall back.
 
 **Request succeeds but does not appear in the dashboard** — the SDK fell back direct to the provider. Check your network can reach `proxy.tolvyn.io` and that you set `tolvyn_api_key` (not `openai_api_key`) as the TOLVYN key.
 

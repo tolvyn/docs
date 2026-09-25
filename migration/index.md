@@ -10,4 +10,4 @@ Pick your migration path:
 | [OpenAI direct](./from-openai-direct.md) | 5 minutes | Trivial |
 
 All migrations preserve your existing API calls. No prompt changes. No model changes.
-Your AI never stops working — TOLVYN is fail-open.
+TOLVYN is fail-open: if the proxy is unreachable and you configured a provider key, the SDK retries directly against the provider. Fail-open covers connection failures, timeouts and `503` — not `500`, `502` or `504` — and a fallen-back request is not metered.
