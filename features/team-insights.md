@@ -48,7 +48,7 @@ client := tolvynopenai.NewClient(tolvyn.ClientOptions{
 ```python
 client = OpenAI(
     api_key="tlv_live_...",
-    base_url="https://proxy.tolvyn.io/v1/proxy/openai",
+    base_url="https://proxy.tolvyn.io/v1/proxy/openai/v1",
 )
 
 client.chat.completions.create(

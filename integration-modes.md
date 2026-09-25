@@ -133,7 +133,7 @@ Proxy mode requires no SDK installation. Point your existing OpenAI client at TO
 
 ```bash
 # Set these environment variables
-export OPENAI_BASE_URL=https://proxy.tolvyn.io/v1/proxy/openai
+export OPENAI_BASE_URL=https://proxy.tolvyn.io/v1/proxy/openai/v1
 export OPENAI_API_KEY=tlv_live_...   # your TOLVYN key, not your OpenAI key
 ```
 
@@ -144,7 +144,7 @@ from openai import OpenAI
 
 client = OpenAI(
     api_key="tlv_live_...",                               # TOLVYN key
-    base_url="https://proxy.tolvyn.io/v1/proxy/openai"   # TOLVYN proxy
+    base_url="https://proxy.tolvyn.io/v1/proxy/openai/v1"   # TOLVYN proxy — keep the trailing /v1
 )
 
 response = client.chat.completions.create(
@@ -201,7 +201,7 @@ It is two lines:
 **Python:**
 ```python
 # Remove this:
-base_url="https://proxy.tolvyn.io/v1/proxy/openai"
+base_url="https://proxy.tolvyn.io/v1/proxy/openai/v1"
 
 # Add this:
 from tolvyn import OpenAI   # change import
@@ -211,7 +211,7 @@ openai_api_key="sk-..."     # add fallback key
 **Node.js:**
 ```javascript
 // Remove this:
-baseURL: 'https://proxy.tolvyn.io/v1/proxy/openai'
+baseURL: 'https://proxy.tolvyn.io/v1/proxy/openai/v1'
 
 // Add this:
 import { OpenAI } from 'tolvyn'   // change import

@@ -8,8 +8,13 @@ Two things change: the base URL and your API key. Everything else stays the same
 
 | | Helicone | TOLVYN |
 |---|---|---|
-| Base URL | `https://oai.helicone.ai/v1` | `https://proxy.tolvyn.io/v1/proxy/openai` |
+| Base URL | `https://oai.helicone.ai/v1` | `https://proxy.tolvyn.io/v1/proxy/openai/v1` |
 | API key header | `Helicone-Auth: Bearer hcsk_...` | `Authorization: Bearer tlv_live_...` |
+
+> **Keep the trailing `/v1`.** Your Helicone base URL ends in `/v1` and so does
+> ours, for the same reason: the OpenAI SDKs append `/chat/completions` to
+> whatever base you give them. An earlier version of this page dropped it, which
+> produced a `404` on the first call after migrating.
 
 Your prompts, models, parameters, and response format are unchanged.
 
@@ -39,7 +44,7 @@ from openai import OpenAI
 
 client = OpenAI(
     api_key="tlv_live_...",   # your TOLVYN key
-    base_url="https://proxy.tolvyn.io/v1/proxy/openai",
+    base_url="https://proxy.tolvyn.io/v1/proxy/openai/v1",
 )
 ```
 
@@ -69,7 +74,7 @@ import OpenAI from "openai";
 
 const client = new OpenAI({
   apiKey: "tlv_live_...",
-  baseURL: "https://proxy.tolvyn.io/v1/proxy/openai",
+  baseURL: "https://proxy.tolvyn.io/v1/proxy/openai/v1",
 });
 ```
 

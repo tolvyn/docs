@@ -8,7 +8,7 @@ Two things change: the base URL and how you authenticate. Everything else stays 
 
 | | Portkey | TOLVYN |
 |---|---|---|
-| Base URL | `https://api.portkey.ai/v1` | `https://proxy.tolvyn.io/v1/proxy/openai` |
+| Base URL | `https://api.portkey.ai/v1` | `https://proxy.tolvyn.io/v1/proxy/openai/v1` |
 | Auth | `x-portkey-api-key: pk_...` | `Authorization: Bearer tlv_live_...` |
 | Provider key | Virtual key (`x-portkey-virtual-key`) | Stored encrypted server-side (set once in dashboard) |
 
@@ -41,7 +41,7 @@ from openai import OpenAI
 
 client = OpenAI(
     api_key="tlv_live_...",   # your TOLVYN key
-    base_url="https://proxy.tolvyn.io/v1/proxy/openai",
+    base_url="https://proxy.tolvyn.io/v1/proxy/openai/v1",
 )
 ```
 
@@ -71,7 +71,7 @@ import OpenAI from "openai";
 
 const client = new OpenAI({
   apiKey: "tlv_live_...",
-  baseURL: "https://proxy.tolvyn.io/v1/proxy/openai",
+  baseURL: "https://proxy.tolvyn.io/v1/proxy/openai/v1",
 });
 ```
 

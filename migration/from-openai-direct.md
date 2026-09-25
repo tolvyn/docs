@@ -7,7 +7,7 @@ Two lines of code. That's it.
 ## What changes
 
 1. Your API key (`sk-...` → `tlv_live_...`)
-2. The base URL (`https://api.openai.com` → `https://proxy.tolvyn.io/v1/proxy/openai`)
+2. The base URL (`https://api.openai.com/v1` → `https://proxy.tolvyn.io/v1/proxy/openai/v1`) — **the trailing `/v1` matters on both sides**: the OpenAI SDKs append `/chat/completions` to whatever base you give them
 
 Your prompts, models, parameters, and response format are completely unchanged. TOLVYN speaks OpenAI's API natively.
 
@@ -30,7 +30,7 @@ from openai import OpenAI
 
 client = OpenAI(
     api_key="tlv_live_...",
-    base_url="https://proxy.tolvyn.io/v1/proxy/openai",
+    base_url="https://proxy.tolvyn.io/v1/proxy/openai/v1",
 )
 ```
 
@@ -53,7 +53,7 @@ import OpenAI from "openai";
 
 const client = new OpenAI({
   apiKey: "tlv_live_...",
-  baseURL: "https://proxy.tolvyn.io/v1/proxy/openai",
+  baseURL: "https://proxy.tolvyn.io/v1/proxy/openai/v1",
 });
 ```
 
