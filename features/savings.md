@@ -55,34 +55,67 @@ All four run in order: `analyzeSmallTokenRequests`, `analyzeDuplicatePrompts`, `
 | Token count | > 0 (excludes failed requests) |
 | Request count for `(model_family, service_name)` pair | > 100 |
 | Estimated monthly savings | ≥ $1.00 |
-| Model must be in the downgrade map | see below |
+| Model must have a substitute | see below |
+| Substitute must be currently priced | see below |
+| Period must contain no cached tokens | see below |
 
-**Hardcoded downgrade map**:
+#### How the figure is derived
 
-| Expensive model | Suggested cheaper alternative | Savings ratio |
-|---|---|---|
-| `gpt-4o` | `gpt-4o-mini` | 93% |
-| `gpt-4-turbo` | `gpt-4o-mini` | 90% |
-| `gpt-4` | `gpt-4o-mini` | 90% |
-| `claude-3-5-sonnet` | `claude-haiku-4-5` | 80% |
-| `claude-sonnet-4-6` | `claude-haiku-4-5` | 75% |
-| `claude-3-opus` | `claude-haiku-4-5` | 95% |
-| `claude-3-sonnet` | `claude-haiku-4-5` | 70% |
-| `claude-opus-4-6` | `claude-sonnet-4-6` | 70% |
-| `claude-opus-4-7` | `claude-sonnet-4-6` | 70% |
-| `o1` | `o3-mini` | 85% |
-| `o1-pro` | `o1-mini` | 95% |
-| `gemini-2.5-pro` | `gemini-2.5-flash` | 80% |
-| `gemini-2.0-ultra` | `gemini-2.0-flash` | 85% |
+**The dollar figure is computed from the substitute's current rates, not from a stored percentage.** When a finding is written, TOLVYN looks up the substitute's input and output rates in the same pricing table your own requests are billed from, and computes:
 
-If your most-used expensive model isn't in this map (e.g. `gpt-5` when released), it won't trigger a downgrade finding — the map needs updating in source.
+```
+optimized cost = (input tokens × input rate) + (output tokens × output rate)
+savings        = what you actually paid − optimized cost
+```
+
+The token counts are the real ones from the period. "What you actually paid" is the recorded cost of those requests, not a re-derivation — so the comparison is against your invoice rather than against a model of it.
+
+**The percentage you see is a consequence of those two numbers, not an input to them.** If a provider changes a price, the next night's finding changes with it. Nothing is carried in TOLVYN's source code that could go stale.
+
+#### When you will NOT see a downgrade finding
+
+The rule is deliberately silent rather than approximate. **No finding is produced when:**
+
+| Condition | Why |
+|---|---|
+| The substitute has no row in the pricing table | Any figure would be invented. This is also what stops TOLVYN recommending a model that has been withdrawn upstream. |
+| The substitute is marked deprecated | A model TOLVYN has marked retired is never recommended, from the moment it is marked. |
+| The substitute is missing an input or output rate | A missing rate is not a zero rate. Pricing the gap at zero would overstate the saving. |
+| The substitute would cost **more** than what you are paying | A negative saving falls below the $1 floor. TOLVYN will not recommend a migration that loses you money. |
+| The period contains cached tokens | The estimate prices input and output only. If you are already getting a caching discount, a figure computed without it would be wrong in your disfavour. |
+
+#### Which substitutions exist
+
+The map holds **which model is an acceptable substitute for which** — a judgement about capability. It holds no prices and no percentages; those come from the pricing table at the moment the finding is written.
+
+| Model in use | Suggested substitute |
+|---|---|
+| `gpt-4o` | `gpt-4o-mini` |
+| `gpt-4-turbo` | `gpt-4o-mini` |
+| `gpt-4` | `gpt-4o-mini` |
+| `claude-3-5-sonnet` | `claude-haiku-4-5` |
+| `claude-sonnet-4-6` | `claude-haiku-4-5` |
+| `claude-3-opus` | `claude-haiku-4-5` |
+| `claude-3-sonnet` | `claude-haiku-4-5` |
+| `claude-opus-4-6` | `claude-sonnet-4-6` |
+| `claude-opus-4-7` | `claude-sonnet-4-6` |
+| `o1` | `o3-mini` |
+| `o1-pro` | `o1-mini` |
+
+**There is no Gemini substitution, and that is deliberate.** `gemini-2.5-flash` and `gemini-2.0-flash` have both been retired by Google and now return 404, and the Gemini models still being served are not cheaper than `gemini-2.5-pro` on *both* input and output — so there is no move TOLVYN could recommend that would reliably save you anything. We would rather say nothing than suggest a migration worth nothing. (Checked against the live Gemini API on 2026-09-27; a substitution will be added when one is worth making.)
+
+If the model you use most has no substitute listed, it produces no downgrade finding.
 
 Example finding text:
 
 ```
-backend in this period used fewer than 500 tokens (avg 184 tokens).
-claude-haiku-4-5 would cost ~$12.40 instead of ~$49.60 — saving ~$37.20.
+100% of backend calls to claude-3-opus in this period used fewer than 500
+tokens (avg 184 tokens). claude-haiku-4-5 would cost ~$12.40 instead of
+~$49.60 — saving ~$37.20, at claude-haiku-4-5's current rate of $1/$5 per
+million input/output tokens.
 ```
+
+The rates are quoted in the finding so you can check the arithmetic against the provider's own price list.
 
 ### 2. `duplicate_prompts` — cache redundant requests
 
