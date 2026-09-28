@@ -9,7 +9,7 @@ TOLVYN is the financial control plane for AI infrastructure. Every AI API call â
 - **Real-time cost metering.** Every request that goes through TOLVYN is recorded with model, token counts, latency, and exact cost in microdollars. Pricing is live, not estimated.
 - **Budget enforcement.** Set hard, soft, or approval budgets per team, service, agent, user, or end-customer. Hard budgets block requests at the proxy before the provider is called.
 - **Immutable audit ledger.** Every request appends to a SHA-256 hash-chained ledger with HMAC signatures. Verifiable at any time via `GET /v1/ledger/verify`. Designed for financial evidence, not just monitoring.
-- **Drop-in SDKs and proxy.** Replace one import line in Python, Node.js, or Go. Or point any HTTP client at `proxy.tolvyn.io`. OpenAI, Anthropic, Google, and DeepSeek supported.
+- **SDKs and a proxy.** Register your provider key with TOLVYN once, point your SDK's base URL at the proxy, and use a TOLVYN key in place of your provider key. The TOLVYN SDKs for Python, Node.js and Go wrap the official clients so the call sites stay as they are; any HTTP client works against `proxy.tolvyn.io` directly. OpenAI, Anthropic, Google and DeepSeek supported.
 
 ---
 

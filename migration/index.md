@@ -1,6 +1,6 @@
 # Migrate to TOLVYN
 
-TOLVYN is a drop-in replacement for any AI proxy or direct OpenAI integration.
+TOLVYN sits in front of any AI proxy or direct OpenAI integration: the request and response shapes are unchanged, so your call sites stay as they are. What changes is the base URL, the key you send, and one piece of setup — registering your provider key with TOLVYN.
 Pick your migration path:
 
 | From | Time | Difficulty |

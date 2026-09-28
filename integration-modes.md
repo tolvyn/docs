@@ -19,7 +19,7 @@ TOLVYN offers two integration modes. Pick one based on your reliability requirem
 
 ## SDK Mode
 
-SDK mode is a drop-in replacement for the OpenAI or Anthropic SDK. Install the `tolvyn` package, change one import line, and your calls are metered.
+SDK mode wraps the OpenAI or Anthropic SDK. Install the `tolvyn` package, change the import, and use a TOLVYN key — and register your provider key with TOLVYN first, or the proxy has no credential to call the provider with. Your call sites are unchanged.
 
 The key advantage: **if TOLVYN is unreachable, the SDK retries the request directly to OpenAI or Anthropic — provided you configured a provider key.** Your AI never stops working.
 
