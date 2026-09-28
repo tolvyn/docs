@@ -131,7 +131,7 @@ All Helicone headers are stripped before the request reaches OpenAI — they wil
 | Savings analysis | ❌ | ✅ |
 | Multi-provider (OpenAI + Anthropic + Google) | ✅ | ✅ |
 
-**On pricing:** Helicone Pro is $79/mo with basic observability. TOLVYN Growth is $199/mo with budget enforcement, kill switches, a financial-grade audit trail, per-customer attribution, and invoice reconciliation. If you only need logs, Helicone is cheaper. If you need control, TOLVYN pays for itself the first time a runaway agent gets blocked.
+**On pricing:** Helicone Pro is $79/mo at the time of writing, with basic observability. TOLVYN Growth is ₹17,999/month (approx. $199 USD) with budget enforcement, kill switches, a financial-grade audit trail, per-customer attribution, and invoice reconciliation. If you only need logs, Helicone is cheaper. If you need control, TOLVYN pays for itself the first time a runaway agent gets blocked.
 
 ---
 

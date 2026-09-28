@@ -139,7 +139,7 @@ Your client never holds a real provider key again.
 | Invoice reconciliation | ❌ | ✅ |
 | Savings analysis | ❌ | ✅ |
 
-**On pricing:** Portkey Pro is $49/mo with basic observability and routing. TOLVYN Growth is $199/mo with budget enforcement, kill switches, a financial-grade audit trail, per-customer attribution, and invoice reconciliation. If you only need routing and logs, Portkey is cheaper. If you need financial control and accountability, TOLVYN is built for that.
+**On pricing:** Portkey Pro is $49/mo at the time of writing, with basic observability and routing. TOLVYN Growth is ₹17,999/month (approx. $199 USD) with budget enforcement, kill switches, a financial-grade audit trail, per-customer attribution, and invoice reconciliation. If you only need routing and logs, Portkey is cheaper. If you need financial control and accountability, TOLVYN is built for that.
 
 ---
 
