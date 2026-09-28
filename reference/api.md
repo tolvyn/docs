@@ -187,7 +187,7 @@ curl https://api.tolvyn.io/v1/account -H "Authorization: Bearer <jwt>"
   "created_at": "2026-05-01T12:00:00Z",
   "updated_at": "2026-05-17T15:52:39Z",
   "digest_enabled": true,
-  "data_share_enabled": true,
+  "data_share_enabled": false,
   "subscription": {
     "plan_tier": "free",
     "included_requests": 10000,
@@ -232,7 +232,7 @@ Removes the Slack webhook from `settings`.
 
 ### `PUT /v1/account/settings/data-share`
 
-Opt in/out of contributing anonymized aggregate metadata to the public AI Cost Index.
+Turn contribution of anonymized aggregate metadata to the public AI Cost Index on or off. **It is off by default** — a tenant who has never called this is not contributing.
 
 | Field | Type | Required |
 |---|---|---|
@@ -1071,7 +1071,7 @@ All other responses pass through from the provider unchanged.
 
 ### `GET /v1/public/cost-index`
 
-No auth, CORS open. Aggregate AI cost data contributed by tenants who opted in to data sharing (k-anonymity threshold: 3 tenants).
+No auth, CORS open. Aggregate AI cost data contributed by the tenants who have explicitly turned data sharing on (k-anonymity threshold: 3 tenants).
 
 Query parameters (all optional):
 

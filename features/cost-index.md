@@ -1,6 +1,6 @@
 # AI Cost Index
 
-The TOLVYN AI Cost Index is a public dataset of average AI request costs by provider, model, and date — sourced from anonymized aggregate data contributed by TOLVYN tenants who opted in. It is the only data source that reflects what AI actually costs in production, at the level of individual model versions, broken out by p50 and p95.
+The TOLVYN AI Cost Index is a public dataset of average AI request costs by provider, model, and date — sourced from anonymized aggregate data contributed by the TOLVYN tenants who have turned data sharing on. It is the only data source that reflects what AI actually costs in production, at the level of individual model versions, broken out by p50 and p95.
 
 Free to query. No authentication. Apache 2.0 data license.
 
@@ -46,7 +46,7 @@ n, err := RunCollection(ctx, db, yesterday)
 The collection query aggregates the `requests` table grouped by `(provider, model_id, model_family)`, filtered to:
 
 - Tenants with `status = 'active'`
-- Tenants where `(settings->>'data_share_enabled') IS DISTINCT FROM 'false'` (i.e. not explicitly opted out)
+- Tenants where `(settings->>'data_share_enabled')::boolean IS TRUE` — **an explicit opt-in. A tenant who has never touched the setting is excluded.**
 - Buckets with `COUNT(DISTINCT tenant_id) >= 3` (k-anonymity floor)
 
 ---
@@ -96,7 +96,7 @@ Two-layer enforcement. If a row somehow ended up with `tenant_count < 3` (e.g. v
 
 From migration 019's leading comment:
 
-> *Anonymized aggregate metadata for TOLVYN AI Cost Index. No tenant_id, no PII, no request content. Tenants can opt out via settings.data_share_enabled = false.*
+> *Anonymized aggregate metadata for TOLVYN AI Cost Index. No tenant_id, no PII, no request content. Contributing is off by default; tenants opt in via settings.data_share_enabled = true.*
 
 The migration is explicit: **no RLS on this table because it has no tenant data**. Concretely:
 
@@ -110,35 +110,35 @@ The migration is explicit: **no RLS on this table because it has no tenant data*
 | Per-request `request_id` | Not preserved through aggregation |
 | Cost per individual tenant | Only the sum across ≥ 3 tenants is retained |
 
-You cannot recover a single tenant's spend from any combination of `aggregate_metadata` rows. The bucket grouping (`provider`, `model_id`, `model_family`) and the k-anonymity floor make tenant re-identification impossible.
+You cannot recover a single tenant's spend from any combination of `aggregate_metadata` rows. The bucket grouping (`provider`, `model_id`, `model_family`) and the k-anonymity floor make tenant re-identification impractical from the published rows. **The floor is a re-identification control and not a consent mechanism**, and the two are not substitutes — which is why contributing is opt-in.
 
 ---
 
-## Opt-out
+## Opting in
 
-### Default: opted in
+### Default: OFF
 
-When a tenant signs up, `settings.data_share_enabled` is unset. The collector reads this as "not opted out" via:
+When a tenant signs up, `settings.data_share_enabled` is unset, and unset means **not contributing**. The collector requires an explicit true:
 
 ```sql
-(t.settings->>'data_share_enabled') IS DISTINCT FROM 'false'
+(t.settings->>'data_share_enabled')::boolean IS TRUE
 ```
 
-`IS DISTINCT FROM 'false'` returns true for NULL and true for `'true'` — only explicit `'false'` excludes a tenant.
+A tenant who has never opened the setting is not in the Cost Index. So is a tenant who set it and turned it off again.
 
-The account dashboard confirms this is the default:
+The account dashboard says the same thing in the same words — *"Off unless you turn it on"* — and the API agrees:
 
 ```go
-COALESCE((settings->>'data_share_enabled')::boolean, true)
+COALESCE((settings->>'data_share_enabled')::boolean, false)
 ```
 
-The dashboard always shows `data_share_enabled: true` until you explicitly opt out.
+**This changed on 2026-09-26.** Before that date the collector included any tenant who had not explicitly opted *out*, and this page said so. If you read that version, nothing of yours was published without the k-anonymity floor applying — but the consent model was opt-out and is now opt-in, and the floor was never a substitute for consent: three tenants who never chose still clear a threshold of three.
 
-### Opt out via dashboard
+### Turn it on via dashboard
 
-**Account → Settings → Data sharing** → toggle off.
+**Account → Data & Privacy → Contribute to AI Cost Index** → toggle on.
 
-### Opt out via API
+### Turn it on or off via API
 
 ```bash
 curl -X PUT https://api.tolvyn.io/v1/account/settings/data-share \
@@ -153,11 +153,11 @@ Response:
 {"data_share_enabled": false}
 ```
 
-### Effect of opt-out
+### Effect of turning it off
 
 - Your requests are **immediately excluded** from the next nightly run.
 - Existing `aggregate_metadata` rows are **not retroactively recomputed**. Historical data points that included you remain (they cannot be linked back to you anyway — see What is NOT collected above).
-- You can re-enable at any time by setting `enabled: true`.
+- You can turn it back on at any time by setting `enabled: true`.
 
 ---
 
@@ -237,6 +237,6 @@ The index updates daily at 03:00 UTC for the previous UTC day. There is no rolli
 
 ## See also
 
-- [Account → Data Share Setting](../reference/api.md#account) — opt-out endpoint
+- [Account → Data Share Setting](../reference/api.md#account) — the opt-in endpoint
 - [API Reference: Public Cost Index](../reference/api.md#public)
 - [The `tolvyn-models` repo](https://github.com/tolvyn/tolvyn-models) — open-source model metadata complementary to the Cost Index
