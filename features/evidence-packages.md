@@ -146,7 +146,9 @@ What **is** independently anchored:
 
 A package covering sequences 100–150 proves those 51 records are contiguous and correctly anchored to record 99. It does **not** prove that records 1–99 still exist, or that nothing was removed from before the range.
 
-This is the same limitation the ledger page records under [what it does NOT prove](ledger.md#what-ledger-integrity-proves--and-what-it-does-not-prove): a record removed from the *start* of a chain leaves no gap between two survivors, only a chain that begins later than it once did. Retention removes oldest-first, so this is the expected state of any chain past its [retention window](ledger.md#retention-and-the-verified-range), not a sign of tampering.
+This is the same limitation the ledger page records under [what it does NOT prove](ledger.md#what-ledger-integrity-proves--and-what-it-does-not-prove): a record removed from the *start* of a chain leaves no gap between two survivors, only a chain that begins later than it once did.
+
+**Retention is not a cause of this, and an earlier version of this page said it was.** Retention redacts `requests` in place and never deletes a ledger record, so a chain does not lose its opening records as it ages — a package starting at `seq_from: 1` is available for the life of the account whatever the plan's window. What a mid-chain package cannot prove is a property of the package, not of retention: you asked for sequences 100–150, so 1–99 are outside what you were handed.
 
 If completeness from origin matters for your audit, request a package whose period starts at the beginning of the chain and check that `seq_from` is `1`.
 

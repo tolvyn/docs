@@ -289,6 +289,25 @@ the ability to attribute old spend to a user, end customer, agent, feature, serv
 the record of the spend. Redaction is irreversible and happens at the window, not after a grace
 period.
 
+**THIS IS ENFORCED BY THE SCHEMA, NOT BY POLICY, AND THAT IS THE PART TO RELY ON.**
+`ledger_records.request_id REFERENCES requests(id)` carries `NO ACTION`, so a surviving ledger row
+*blocks* the deletion of its request with a foreign-key violation. Keeping the ledger while deleting
+requests is not something the database will do. `ON DELETE SET NULL` is not an alternative either:
+`request_id` is one of the fourteen fields inside the hashed payload, so nulling it would change
+`record_hash` on every affected record. Redaction in place is the only mechanism that satisfies both
+an erasure obligation and the chain.
+
+**And the design is the way it is because the alternative was tried and broke evidence.** The
+previous scheme hard-deleted, oldest-first — which severs a chain *at its start*, leaving no
+surviving predecessor to anchor against. Verification then reports `previous_hash mismatch` on a
+chain that is otherwise perfect: the same string real tampering produces. A customer saw a failure
+on intact evidence. Redaction exists so that cannot happen again.
+
+**The two goals were never actually in conflict.** `ledger_records` is content-blind — no prompts,
+no responses, no end-user identity, and one path string of identifying content. Every column an
+erasure obligation attaches to lives on `requests`, and clearing those satisfies the obligation
+without destroying the chain.
+
 **Two consequences worth planning around.** If you must retain records for a fixed period — whatever
 your regulator, auditor or contracts require — pick a plan whose window covers it, and check the
 number above against your own obligation rather than assuming the default is enough. And upgrading a
@@ -310,9 +329,13 @@ Enterprise, a signed [evidence package](evidence-packages.md) bundles the record
 manifest and a standalone verifier, which is the cleaner hand-off. Either way the auditor verifies independently, without
 trusting your dashboard.
 
-Check first that the audit period fits inside your plan's [retention
-window](#retention-and-the-verified-range) — records older than the window are already gone, and no
-export recovers them.
+The audit period does **not** have to fit inside your plan's [retention
+window](#retention-and-the-verified-range). Retention never deletes a ledger record, so the chain
+and every cost in it are exportable and verifiable for any period in the account's life. What the
+window governs is **attribution**: past it, a request no longer says which user, end customer,
+agent, feature, service or team it belonged to. An audit of *what was spent and whether the record
+is intact* is unaffected; an audit that must attribute spend to a team or a customer needs a plan
+whose window covers the period.
 
 ### CFO reporting
 
@@ -348,9 +371,10 @@ For SaaS customers who need a verified report of AI usage on their behalf, filte
 - **The ledger is not a queue.** Records are inserted synchronously inside the request's metering
   transaction. There is no separate "ledger lag" — the ledger row is written in the same transaction
   as the request it describes. Three caveats on reading that as a strict one-to-one pairing.
-  **Retention breaks it:** the nightly sweep deletes from `ledger_records` and from `requests` as
-  separate statements, so the pairing does not survive a record ageing out, and does not hold across
-  the two deletes. **A ledger row attests that a request was metered, not that it completed:** a
+  **Retention does NOT break it**, and that is worth saying because an earlier version of this page
+  said the opposite: the nightly pass redacts `requests` in place and never touches
+  `ledger_records`, so every ledger row keeps a live reference to a real request row for the life of
+  the account. **A ledger row attests that a request was metered, not that it completed:** a
   response stream truncated partway — by a provider reset or a timeout — is metered on the bytes
   that arrived and produces a record indistinguishable from a complete one. **And the ledger append
   can fail on its own without failing the request:** it runs inside a savepoint, and if the append

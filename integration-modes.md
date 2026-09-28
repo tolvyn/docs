@@ -21,7 +21,7 @@ TOLVYN offers two integration modes. Pick one based on your reliability requirem
 
 SDK mode wraps the OpenAI or Anthropic SDK. Install the `tolvyn` package, change the import, and use a TOLVYN key — and register your provider key with TOLVYN first, or the proxy has no credential to call the provider with. Your call sites are unchanged.
 
-The key advantage: **if TOLVYN is unreachable, the SDK retries the request directly to OpenAI or Anthropic — provided you configured a provider key.** Your AI never stops working.
+The key advantage: **if TOLVYN is unreachable, the SDK retries the request directly to OpenAI or Anthropic — provided you configured a provider key.** The fallback is narrower than it sounds and the limits are listed below: it covers a connection failure, a timeout or a `503`, and **not** a `500`, `502` or `504`, and a hung proxy can take as long as the transport's timeout before the fallback starts. A request that falls back never reaches TOLVYN, so it is not metered, not budget-checked and not in the ledger.
 
 ### Python
 
@@ -79,7 +79,7 @@ When the SDK cannot reach `proxy.tolvyn.io` (connection refused, timeout, or HTT
 4. The request is **not** metered in TOLVYN for that call (it bypassed the proxy)
 5. You may see a slightly higher latency on that one request (one retry)
 
-This means TOLVYN is **never in your critical path** in SDK mode.
+This means that in SDK mode a TOLVYN outage does not have to take your application down with it — within the limits above. It is not a guarantee that TOLVYN is never in your critical path: the fallback needs a provider key you configured, it does not cover every failure mode, and while it is in effect you are running without metering, budgets or the ledger.
 
 ---
 

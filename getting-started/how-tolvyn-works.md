@@ -59,7 +59,7 @@ Every request through the TOLVYN proxy follows these steps:
 | TOLVYN API key | `tlv_live_...` | Authenticates your app to the proxy |
 | Provider key | OpenAI / Anthropic / Google / DeepSeek format | Stored encrypted; used by the proxy to call the provider |
 
-Your provider key is encrypted at rest (AES-256-GCM, per-tenant data-encryption key) and is **never returned by the API after creation**. The proxy decrypts it only in memory, at request time. Your application code only ever holds the TOLVYN key.
+Your provider key is encrypted at rest with AES-256-GCM under a server-side master key, with your tenant id and the provider name bound into the ciphertext as additional authenticated data — so a stored key cannot be decrypted for a different tenant or a different provider. It is **never returned by the API after creation**. The proxy decrypts it only in memory, at request time. Your application code only ever holds the TOLVYN key.
 
 ---
 
@@ -107,7 +107,7 @@ Budget/enforcement checks are themselves fail-open: a TOLVYN-side error never bl
 ## 7. Tenant isolation & security
 
 - **Database-level isolation.** Tenant data is isolated at the database layer using PostgreSQL row-level security (enforced in production), on top of application-level tenant scoping — so a query for one tenant cannot read another tenant's rows.
-- **Provider keys encrypted at rest** (AES-256-GCM, per-tenant key); never returned after creation.
+- **Provider keys encrypted at rest** (AES-256-GCM under a server-side master key, with tenant id and provider bound in as additional authenticated data); never returned after creation.
 - **No prompt or response storage** (see §8).
 
 ---

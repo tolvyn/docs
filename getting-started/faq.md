@@ -26,7 +26,7 @@ Intentional governance responses (HTTP 4xx, e.g. a hard-budget 429 or a kill-swi
 
 ## How is my provider API key stored?
 
-Encrypted at rest with AES-256-GCM using a server-side master key (per-tenant data-encryption key). The original key is never returned after it is saved — not in the dashboard, not via the API. Only the proxy can decrypt it, in memory, when forwarding requests.
+Encrypted at rest with AES-256-GCM under a server-side master key. Your tenant id and the provider name are bound into the ciphertext as additional authenticated data, so a stored key cannot be decrypted for a different tenant or a different provider. The original key is never returned after it is saved — not in the dashboard, not via the API. Only the proxy can decrypt it, in memory, when forwarding requests.
 
 ---
 

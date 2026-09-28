@@ -13,7 +13,7 @@ Use it for incident response: a runaway agent, a leaked API key, a service in a 
 | Block status | `HTTP 451` |
 | Order in proxy | First — runs before budget check |
 | State location | In-memory map + `kill_switches` table |
-| Latency | Sub-millisecond (no DB round-trip) |
+| Latency | In-memory lookup, no database round-trip |
 | Persistence | Survives server restart (loaded from DB at startup) |
 | Scope | `all`, `team`, `service`, `agent`, `api_key` |
 | Auto-deactivation | None — must be deactivated manually |
@@ -92,7 +92,7 @@ Status: `451 Unavailable For Legal Reasons`.
 
 ## In-memory store
 
-For sub-millisecond proxy-path latency, kill switches are kept in an in-memory map keyed by tenant ID.
+To keep the check off the database, kill switches are held in an in-memory map keyed by tenant ID. No figure is published for how long the lookup takes: nothing in this repository measures it, and a number nobody measured is worth less than the mechanism, which is that the proxy path does not query the database to decide.
 
 ### Startup
 
