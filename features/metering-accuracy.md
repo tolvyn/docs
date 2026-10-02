@@ -1,6 +1,6 @@
 # Metering Accuracy
 
-How TOLVYN measures cost — where it's exact, where it's approximate, and which direction the error goes. The rule: **TOLVYN may under-count, but it never over-charges**, and this page tells you where.
+How TOLVYN measures cost — where it's exact, where it's approximate, and which direction the error goes. **There is one place where a figure can be too high — DeepSeek traffic outside peak hours — and it is the first section below.** Everywhere else, TOLVYN may under-count but never over-states.
 
 ## Precision
 
@@ -11,12 +11,42 @@ How TOLVYN measures cost — where it's exact, where it's approximate, and which
 
 For standard requests on a priced model — streaming or non-streaming — token counts come directly from the provider's own usage report, so the recorded cost is exact to the microdollar.
 
-## Where it currently under-counts (never over-charges)
+## Where metering is currently inexact
+
+### DeepSeek spend is overstated outside peak hours
+
+**DeepSeek charges half price outside 01:00–04:00 and 06:00–10:00 UTC on
+weekdays. TOLVYN stores one rate per model and applies the peak rate to every
+request, so an individual DeepSeek request made outside those windows is recorded
+at exactly double its true cost.**
+
+Your DeepSeek figures are correct for traffic inside the two weekday windows and
+double outside them — which includes **all weekend traffic**. What that means for
+a total depends on when your workload runs:
+
+| when your DeepSeek traffic runs | your DeepSeek total is overstated by |
+|---|---|
+| mostly 06:00–10:00 UTC on weekdays | about **40%** |
+| spread evenly across the week | about **65%** |
+| US business hours, or weekends, or batch overnight | **100% — exactly double** |
+
+**The error is only ever in this direction. TOLVYN never understates DeepSeek
+spend**, so your real DeepSeek bill is always lower than the figure shown, never
+higher. **No other provider is affected** — this is specific to DeepSeek's
+time-of-day pricing.
+
+**Until this is corrected, reconcile DeepSeek against your provider invoice
+rather than against this dashboard.** Every other provider's figures are
+unaffected and can be read as usual.
+
+### Where it under-counts
 
 - **1-hour cache writes** and **>200k long-context** requests are billed at the **base rate** today. Providers charge a premium for these tiers; TOLVYN has the premium rates staged but **not yet switched on in production**, so these specific usages are slightly under-counted until they are. (When enabled, they only ever *raise* the recorded cost toward the true rate.)
 - **Batch API** submissions are asynchronous: a submission returns a job id with no per-request usage, so it is recorded at **$0 and explicitly tagged as unmetered** — identifiable in your data, not a silent gap. The (discounted) batch usage itself is not metered.
 
-In every case the error is one-directional — toward under-counting — so TOLVYN never bills you for more than you used.
+**These two are one-directional toward under-counting.** The DeepSeek off-peak
+case above is the one exception in the other direction, and it is the only place
+where a TOLVYN figure can exceed what you were actually charged.
 
 ## Reconciliation is the backstop
 

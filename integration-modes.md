@@ -85,7 +85,14 @@ This means that in SDK mode a TOLVYN outage does not have to take your applicati
 
 ## DeepSeek (OpenAI-compatible)
 
-DeepSeek's API is OpenAI-compatible, so **there is no separate DeepSeek client** — you use the **OpenAI client** pointed at TOLVYN's DeepSeek proxy path, with `model: "deepseek-chat"`.
+DeepSeek's API is OpenAI-compatible, so **there is no separate DeepSeek client** — you use the **OpenAI client** pointed at TOLVYN's DeepSeek proxy path.
+
+> **Use a current model name.** DeepSeek's documented models are **`deepseek-flash`**
+> and **`deepseek-v4-pro`**. The examples below previously used `deepseek-chat`,
+> which DeepSeek no longer lists; if you have it hard-coded, move to
+> `deepseek-flash`. The names `deepseek-v4-flash` and
+> `deepseek-v4-flash-vision-exp` are still accepted by DeepSeek but are served by
+> the current Flash model and billed at the Flash price.
 
 **SDK mode** — override the proxy URL on the OpenAI client:
 
@@ -98,7 +105,7 @@ client = OpenAI(
     proxy_url="https://proxy.tolvyn.io/v1/proxy/deepseek/",
 )
 resp = client.chat.completions.create(
-    model="deepseek-chat",
+    model="deepseek-flash",
     messages=[{"role": "user", "content": "Hello"}],
 )
 ```
@@ -112,7 +119,7 @@ const client = new OpenAI({
   proxyUrl: 'https://proxy.tolvyn.io/v1/proxy/deepseek/',
 })
 const resp = await client.chat.completions.create({
-  model: 'deepseek-chat',
+  model: 'deepseek-flash',
   messages: [{ role: 'user', content: 'Hello' }],
 })
 ```
@@ -121,7 +128,13 @@ const resp = await client.chat.completions.create({
 
 **Add your DeepSeek key in the dashboard** (Account → Providers → DeepSeek). TOLVYN swaps it in when forwarding; your SDK only ever holds the TOLVYN key.
 
-> **Served-model note:** DeepSeek resolves `deepseek-chat` to a concrete served model server-side, so usage may show as e.g. `deepseek-v4-flash` in the dashboard. It is **billed at the `deepseek-chat` rate** — the served alias is expected and correctly priced.
+> **Served-model note:** DeepSeek resolves your request to a concrete served model
+> server-side, so usage may show a different name in the dashboard than the one you
+> sent — `deepseek-flash` requests can appear as `deepseek-v4-flash`, for example.
+> **You are billed at the served model's own rate**, which for every name in the
+> Flash family is the Flash price. The rename is expected and correctly priced.
+> See [Metering Accuracy](features/metering-accuracy.md) for the one case where a
+> DeepSeek figure is too high — traffic outside DeepSeek's peak hours.
 
 See the per-SDK pages for the full DeepSeek recipe, including Go: [Python](./sdks/python.md) · [Node.js](./sdks/nodejs.md) · [Go](./sdks/go.md).
 

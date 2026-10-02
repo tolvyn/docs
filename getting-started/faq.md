@@ -64,7 +64,7 @@ Periods reset automatically (daily / weekly / monthly). See [Budgets](../feature
 
 ## Is metering exact?
 
-For standard requests on priced models, yes — costs come from the provider's own usage report and are exact to the microdollar. A few cases currently **under-count** (never over-charge), and tiny costs can display as `$0.0000` due to rounding even though they were metered. The full, honest breakdown — and reconciliation as the backstop — is in [Metering Accuracy](../features/metering-accuracy.md).
+For standard requests on priced models, yes — costs come from the provider's own usage report and are exact to the microdollar. A few cases currently **under-count**, and tiny costs can display as `$0.0000` due to rounding even though they were metered. **One case over-states: DeepSeek traffic outside peak hours is recorded at double its true cost**, because DeepSeek halves its price off-peak and TOLVYN stores a single rate. The full, honest breakdown — and reconciliation as the backstop — is in [Metering Accuracy](../features/metering-accuracy.md).
 
 ---
 
