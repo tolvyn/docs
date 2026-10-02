@@ -762,22 +762,45 @@ All require JWT.
 
 ### `GET /v1/models`
 
-List of supported models with current pricing.
+Priced models with their current rates. Optional `?provider=` filters by provider
+(e.g. `?provider=openai`); `total` is the number of rows returned, after that filter.
 
 ```json
-[
-  {
-    "model_id": "gpt-4o",
-    "provider": "openai",
-    "model_family": "gpt-4o",
-    "pricing_input_per_mtok": 2.5,
-    "pricing_output_per_mtok": 10.0,
-    "pricing_cached_per_mtok": 1.25,
-    "context_window": 128000,
-    "pricing_updated_at": "2026-05-01T00:00:00Z"
-  }
-]
+{
+  "data": [
+    {
+      "model_id": "gpt-4o",
+      "provider": "openai",
+      "model_family": "gpt-4o",
+      "display_name": "GPT-4o",
+      "pricing_input_per_mtok": 2.5,
+      "pricing_output_per_mtok": 10.0,
+      "pricing_cached_per_mtok": 1.25,
+      "context_window": 128000
+    }
+  ],
+  "total": 1
+}
 ```
+
+`model_family`, `pricing_cached_per_mtok`, `context_window` and `deprecated_at` are
+omitted when not set, so treat all four as optional. `model_family` in particular is
+absent for most rows.
+
+`deprecated_at` is an RFC 3339 timestamp and appears **only on models we have retired**:
+
+```json
+{ "model_id": "gpt-4-0125-preview", "provider": "openai",
+  "display_name": "GPT-4 Turbo Preview (Jan 2024)",
+  "pricing_input_per_mtok": 10.0, "pricing_output_per_mtok": 30.0,
+  "deprecated_at": "2026-10-05T09:12:44Z" }
+```
+
+**This list is not filtered by `deprecated_at`, and retiring a model does not block
+requests for it.** Retired models stay in the response so that tools filtering
+historical usage can still name a model you used and paid for. If your code picks a
+model to call from this list, skip entries that carry `deprecated_at` — a retired
+model will usually be rejected by the upstream provider.
 
 ### `GET /v1/models/changes`
 
