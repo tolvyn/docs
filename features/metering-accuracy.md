@@ -35,7 +35,15 @@ The dashboard shows the model the **provider actually served**, which may be a c
 | `deepseek-chat` | `deepseek-v4-flash` | the `deepseek-chat` rate |
 | `claude-haiku-4-5` | `claude-haiku-4-5-20251001` | the `claude-haiku-4-5` rate |
 
-This is expected and correctly priced — the cost uses the canonical family rate regardless of the served snapshot name.
+This is expected and correctly priced. **The rate comes from the served snapshot's
+own entry when we hold one, and from the canonical family's entry otherwise** —
+in that order, so a provider that prices a specific snapshot differently is
+billed at that snapshot's rate rather than its family's.
+
+Where we hold both entries for one model, they are expected to carry the same
+rate, and **we compare them before every release rather than assuming it**. If
+they ever diverge, the snapshot's own rate is what you are billed — which is why
+the comparison is a release gate and not a note.
 
 **Gemini "thinking" tokens** are billed as **output** tokens. A Gemini 2.5+ request can return few or no visible text tokens while spending its budget on internal reasoning; those reasoning tokens are counted as output (which is how the provider bills them).
 
