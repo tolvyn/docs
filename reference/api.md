@@ -542,16 +542,37 @@ All require JWT. All accept `?from=`, `?to=`, `?team_id=`, `?model=`, `?service=
   "total_cost_microdollars": 12500000,
   "total_cost_usd": "12.50",
   "total_requests": 1843,
+  "total_errors": 14,
   "total_tokens_input": 215000,
   "total_tokens_output": 38000,
   "top_models": [
-    {"model_id":"gpt-4o","requests":1200,"cost_microdollars":9800000,"cost_usd":"9.80"}
+    {"model_id":"gpt-4o","requests":1200,"error_count":9,"cost_microdollars":9800000,"cost_usd":"9.80"}
   ],
   "top_teams": [
-    {"team_id":"b3e2c8a4-...","requests":1843,"cost_microdollars":12500000,"cost_usd":"12.50"}
+    {"team_id":"b3e2c8a4-...","requests":1843,"error_count":14,"cost_microdollars":12500000,"cost_usd":"12.50"}
   ]
 }
 ```
+
+**`requests` counts requests the provider SERVED; `error_count` counts the rest.**
+Every usage aggregate reports the pair, and every figure beside them — cost,
+tokens, averages — describes the served requests only. A call that reached the
+provider and came back an error carries no tokens and usually no cost, so
+counting it as served inflated request counts and dragged averages toward zero.
+
+`requests + error_count` is the total number of calls, and it is the figure
+`GET /v1/usage/requests` lists row by row with a `status_code` on each. If you
+were relying on `requests` to mean "all calls", add `error_count` to it.
+
+A failure here means the **provider** returned a non-2xx. It never means TOLVYN
+blocked the call: a budget block is refused before any usage row is written, and
+those decisions are reported separately.
+
+The pair appears on every breakdown — `by-model`, `by-team`, `by-service`,
+`by-feature`, `by-agent`, `by-key`, `by-user`, `by-end-customer` and both detail
+endpoints — including inside nested arrays such as `top_models`, `top_teams`,
+`model_breakdown`, `daily_spend` and `top_services`, so the numbers inside one
+response always reconcile.
 
 ### `GET /v1/usage/requests`
 
