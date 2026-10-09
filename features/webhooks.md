@@ -171,21 +171,51 @@ Fires when a provider's published price for a model the tenant has used in the l
   "previous_value": 2.5,
   "new_value": 2.0,
   "percent_change": -20.0,
-  "impact_estimate_usd": "4.2000",
-  "effective_date": "2026-06-01"
+  "impact_estimate_usd": "-4.2000",
+  "impact_kind": "decrease",
+  "effective_date": "2026-06-01",
+  "detected_at": "2026-05-30"
 }
 ```
 
 | Field | Type | Description |
 |---|---|---|
 | `model_id` | string | Provider's model identifier |
-| `provider` | string | `openai` / `anthropic` / `google` |
-| `field_changed` | string | `input`, `output`, or `cached` |
+| `provider` | string | `openai` / `anthropic` / `google` / `deepseek` |
+| `field_changed` | string | Which rate moved — see the table below |
 | `previous_value` | number | Old price (USD per million tokens) |
 | `new_value` | number | New price (USD per million tokens) |
 | `percent_change` | number | `(new - prev) / prev * 100`; negative means price dropped |
 | `impact_estimate_usd` | string | Per-tenant monthly impact estimate based on last 30 days' usage; negative = savings |
-| `effective_date` | string | ISO 8601 date the new price takes effect |
+| `impact_kind` | string | Why `impact_estimate_usd` is what it is — see the table below |
+| `effective_date` | string | ISO 8601 date (UTC) TOLVYN started billing the new price |
+| `detected_at` | string | ISO 8601 date (UTC) the change was first seen at the provider. Omitted when the change was applied directly rather than detected. **When it is earlier than `effective_date`, your requests in between were billed at the previous rate.** |
+
+`field_changed` names the token bucket the rate bills:
+
+| Value | Bills |
+|---|---|
+| `input` | Input tokens |
+| `output` | Output tokens |
+| `cached` | Cache-read tokens |
+| `cache_write` | Cache-creation tokens, 5-minute TTL |
+| `cache_write_1h` | Cache-creation tokens, 1-hour TTL |
+| `input_above_200k`, `output_above_200k`, `cached_above_200k`, `cache_write_above_200k`, `cache_write_1h_above_200k` | The same five buckets, for requests whose prompt exceeds the model's long-prompt boundary. The name is historical: the boundary is **per model** and is not always 200,000 tokens. |
+
+`impact_kind` tells you what the estimate means. **Do not read a `0.0000` estimate as "this change does not affect me"** — five of these kinds produce a zero for different reasons:
+
+| Value | Meaning |
+|---|---|
+| `increase` | The estimate is an amount you will pay more |
+| `decrease` | The estimate is an amount you will save |
+| `same_rate` | The new price equals the one already in effect |
+| `no_bucket_usage` | You sent no tokens of this kind in the last 30 days |
+| `below_tier` | None of your prompts in the last 30 days reached the model's long-prompt boundary |
+| `tier_unreachable` | A long-prompt rate changed, but TOLVYN does not yet hold that model's boundary, so the rate is not being applied to any request |
+| `below_reportable` | The change is real and amounts to less than one millionth of a dollar over your usage |
+| `not_costed` | The change is not a per-token rate, so there is no money estimate |
+
+A cache-write estimate may exclude requests metered before TOLVYN recorded which cache TTL applied; those requests' TTL is unrecoverable, so they are left out rather than guessed at.
 
 ### `webhook.test`
 
