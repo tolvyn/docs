@@ -45,7 +45,7 @@ client = OpenAI(
 )
 ```
 
-Add your real OpenAI key once in the TOLVYN dashboard under **Provider Connections** — it is stored encrypted server-side and never sent to the client.
+Add your real OpenAI key once in the TOLVYN dashboard on the **Providers** page (`/providers`) — it is stored encrypted server-side and never sent to the client.
 
 ---
 
@@ -117,7 +117,7 @@ All Portkey headers are stripped before the request reaches OpenAI — they will
 
 Portkey uses virtual keys to reference stored credentials from the client. TOLVYN stores the real provider key encrypted on the server — it never leaves.
 
-1. Go to **Account → Provider Connections** in the TOLVYN dashboard.
+1. Go to **Providers** (`/providers`) in the TOLVYN dashboard.
 2. Add your OpenAI (or Anthropic / Google) key.
 3. Remove the `x-portkey-virtual-key` header from your client code.
 

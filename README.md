@@ -16,7 +16,7 @@ TOLVYN is the financial control plane for AI infrastructure. Every AI API call �
 ## 60-second quickstart
 
 1. Sign up at [app.tolvyn.io/signup](https://app.tolvyn.io/signup)
-2. **Account → Provider Connections** — add your OpenAI / Anthropic / Google / DeepSeek key (stored encrypted server-side)
+2. **Providers** (`/providers`) — add your OpenAI / Anthropic / Google / DeepSeek key (stored encrypted server-side)
 3. **API Keys → Create** — copy the `tlv_live_...` key (shown once)
 4. Use it:
 

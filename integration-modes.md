@@ -119,7 +119,7 @@ const resp = await client.chat.completions.create({
 
 **Proxy mode** — point any OpenAI client at `https://proxy.tolvyn.io/v1/proxy/deepseek` with your TOLVYN key as the bearer token.
 
-**Add your DeepSeek key in the dashboard** (Account → Providers → DeepSeek). TOLVYN swaps it in when forwarding; your SDK only ever holds the TOLVYN key.
+**Add your DeepSeek key in the dashboard** (**Providers** → DeepSeek, at `/providers`). TOLVYN swaps it in when forwarding; your SDK only ever holds the TOLVYN key.
 
 > **Served-model note:** DeepSeek resolves `deepseek-chat` to a concrete served model server-side, so usage may show as e.g. `deepseek-v4-flash` in the dashboard. It is **billed at the `deepseek-chat` rate** — the served alias is expected and correctly priced.
 

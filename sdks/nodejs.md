@@ -196,7 +196,7 @@ const response = await client.chat.completions.create({
 console.log(response.choices[0].message.content)
 ```
 
-- Add your DeepSeek provider key in the **dashboard** (Account → Providers → DeepSeek). Your SDK only ever holds the TOLVYN key; TOLVYN swaps in the DeepSeek key when forwarding.
+- Add your DeepSeek provider key in the **dashboard** (**Providers** → DeepSeek, at `/providers`). Your SDK only ever holds the TOLVYN key; TOLVYN swaps in the DeepSeek key when forwarding.
 - **Served model:** DeepSeek resolves `deepseek-chat` to a concrete served model server-side, so usage may show as e.g. `deepseek-v4-flash` in the dashboard — it is **billed at the `deepseek-chat` rate** (expected, correctly priced).
 
 ---

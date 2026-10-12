@@ -31,7 +31,7 @@ email; until you open the link, login answers `403 email_unverified`. The link i
 
 ## Step 2 — Add your provider key
 
-Navigate to **Account → Provider Connections** in the dashboard.
+Navigate to **Providers** (`/providers`) in the dashboard.
 
 Pick a provider and paste the corresponding key:
 
