@@ -6,7 +6,7 @@ Two lines of your code change. There is a step before them that is not code.
 
 ## What setup is
 
-1. **Register your OpenAI key with TOLVYN**, once, under **Settings → Providers**. TOLVYN calls OpenAI with *your* key, so until it has one every proxied request returns `409 provider_credentials_missing`. This is a dashboard step, not a code change, and it is the one people miss.
+1. **Register your OpenAI key with TOLVYN**, once, on the **Providers** page (`/providers`). TOLVYN calls OpenAI with *your* key, so until it has one every proxied request returns `409 provider_credentials_missing`. This is a dashboard step, not a code change, and it is the one people miss.
 2. **Point the base URL at the proxy** — `https://api.openai.com/v1` → `https://proxy.tolvyn.io/v1/proxy/openai/v1`. **The trailing `/v1` matters on both sides**: the OpenAI SDKs append `/chat/completions` to whatever base you give them.
 3. **Use a TOLVYN key in place of your provider key** — `sk-...` → `tlv_live_...`. Your OpenAI key stays with TOLVYN and never goes in your application again.
 
@@ -37,7 +37,7 @@ client = OpenAI(
 )
 ```
 
-Add your real OpenAI key once in the TOLVYN dashboard (**Account → Provider Connections**). Your app code never holds a provider key again.
+Add your real OpenAI key once in the TOLVYN dashboard, on the **Providers** page (`/providers`). Your app code never holds a provider key again.
 
 ---
 

@@ -224,7 +224,7 @@ resp, err := client.Chat.Completions.New(context.Background(), oai.ChatCompletio
 ```
 
 - Use `oai.ChatModel("deepseek-chat")` (a plain string cast) since there is no named constant for it.
-- Add your DeepSeek provider key in the **dashboard** (Account → Providers → DeepSeek). Your code only ever holds the TOLVYN key; TOLVYN swaps in the DeepSeek key when forwarding.
+- Add your DeepSeek provider key in the **dashboard** (**Providers** → DeepSeek, at `/providers`). Your code only ever holds the TOLVYN key; TOLVYN swaps in the DeepSeek key when forwarding.
 - **Served model:** DeepSeek resolves `deepseek-chat` to a concrete served model server-side, so usage may show as e.g. `deepseek-v4-flash` in the dashboard — it is **billed at the `deepseek-chat` rate** (expected, correctly priced).
 
 ---
