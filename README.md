@@ -23,7 +23,7 @@ TOLVYN is the financial control plane for AI infrastructure. Every AI API call â
    ```python
    from tolvyn import OpenAI
    client = OpenAI(tolvyn_api_key="tlv_live_...")
-   client.chat.completions.create(model="gpt-4o", messages=[...])
+   client.chat.completions.create(model="gpt-4o-mini", messages=[...])
    ```
 
 5. Open the dashboard â€” the request appears within seconds with cost, tokens, and latency.

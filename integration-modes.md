@@ -41,7 +41,7 @@ client = OpenAI(
 
 # Everything else is identical
 response = client.chat.completions.create(
-    model="gpt-4o",
+    model="gpt-4o-mini",
     messages=[{"role": "user", "content": "Hello"}]
 )
 ```
@@ -64,7 +64,7 @@ const client = new OpenAI({
 
 // Everything else is identical
 const response = await client.chat.completions.create({
-  model: 'gpt-4o',
+  model: 'gpt-4o-mini',
   messages: [{ role: 'user', content: 'Hello' }]
 })
 ```
@@ -148,7 +148,7 @@ client = OpenAI(
 )
 
 response = client.chat.completions.create(
-    model="gpt-4o",
+    model="gpt-4o-mini",
     messages=[{"role": "user", "content": "Hello"}],
     extra_headers={
         "X-Tolvyn-Team": "engineering",
@@ -166,7 +166,7 @@ curl https://proxy.tolvyn.io/v1/proxy/openai/v1/chat/completions \
   -H "X-Tolvyn-Team: engineering" \
   -H "X-Tolvyn-Service: chatbot-api" \
   -d '{
-    "model": "gpt-4o",
+    "model": "gpt-4o-mini",
     "messages": [{"role": "user", "content": "Hello"}]
   }'
 ```
@@ -180,7 +180,7 @@ Content-Type: application/json
 X-Tolvyn-Team: engineering
 X-Tolvyn-Service: chatbot-api
 
-{"model":"gpt-4o","messages":[{"role":"user","content":"Hello"}]}
+{"model":"gpt-4o-mini","messages":[{"role":"user","content":"Hello"}]}
 ```
 
 ### Important: TOLVYN is in your critical path
