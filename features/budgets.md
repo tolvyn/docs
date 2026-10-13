@@ -15,7 +15,7 @@ A budget is a row in the `budgets` table with these key fields:
 | Field | Description |
 |---|---|
 | `scope_type` | `organization`, `team`, `service`, or `agent` |
-| `scope_id` | The team/service/agent identifier (or NULL for `organization`) |
+| `scope_id` | A UUID, and what it holds depends on the scope: the **team's id** for `team`; a UUID **derived from the name** for `service` and `agent` (you pass the name, TOLVYN derives it — see [Service and agent names](#service-and-agent-names)); NULL for `organization` |
 | `amount_microdollars` | Limit in microdollars (int64) |
 | `period` | `daily`, `weekly`, or `monthly` |
 | `mode` | `soft`, `hard`, or `approval` |
@@ -39,10 +39,14 @@ The resolver sorts applicable budgets by the explicit ordering agent (most speci
 
 A request with team `backend`, service `summarizer`, and agent `claude-code` is checked against:
 
-- Any `agent` budget where `scope_id = AgentNameToUUID("claude-code")`
-- Any `service` budget where `scope_id = "summarizer"`
-- Any `team` budget where `scope_id = "<backend team UUID>"`
-- Any `organization` budget (no `scope_id`)
+- Any `agent` budget created for the agent name `claude-code`
+- Any `service` budget created for the service name `summarizer`
+- Any `team` budget created for the `backend` team
+- Any `organization` budget (no scope)
+
+For `service` and `agent`, TOLVYN matches on a UUID it derives from the name you
+gave when you created the budget — you never handle that UUID yourself. See
+[Service and agent names](#service-and-agent-names).
 
 All four can exist simultaneously and all four spend counters tick on every request.
 
@@ -222,7 +226,7 @@ The dashboard's budget list endpoint also resets expired periods so the UI refle
 4. Pick a mode (soft / hard / approval)
 5. Save
 
-For a team or service scope, the dashboard provides a picker for `scope_id`. For agent scope, the agent name is what the SDK / proxy sends in `X-Tolvyn-Agent`.
+For a team scope, the dashboard provides a team picker. For a service or agent scope, you **type the name** — the same value your requests carry in `X-Tolvyn-Service` or `X-Tolvyn-Agent` (or that is bound to the API key). **It must match exactly**: the budget is matched on that name, so `checkout` and `Checkout` are two different services.
 
 ### API
 
@@ -266,16 +270,32 @@ CLI flags:
 
 ---
 
-## Agent budgets
+## Service and agent names
 
-Agents are identified by the `X-Tolvyn-Agent` request header (or the `agent` SDK option). When you create an agent budget, the agent **name** is what you pass — the server derives a deterministic UUID and stores it in the `scope_id` column.
+Services and agents are identified by **a name you choose**, carried on each
+request in `X-Tolvyn-Service` / `X-Tolvyn-Agent` (or the `service` / `agent` SDK
+option, or bound to the API key). Neither is a record in TOLVYN — there is no
+"create a service" step — so the name is the whole of the identity.
 
-Agent names are converted to a deterministic UUID v5:
+When you create a service or agent budget you pass **the name**: `service_name`
+or `agent_name`. TOLVYN derives a deterministic UUID from it and stores that in
+the `scope_id` column, which is UUID-typed. At resolution time the proxy reads
+the header, derives the same UUID, and matches. **You never see or supply that
+UUID**, and `scope_id` in a create request is ignored for these two scopes.
+
+**THE NAME MUST MATCH EXACTLY.** The derivation is over the literal string, so
+`checkout` and `Checkout` are two different services and a budget on one will
+never match traffic tagged with the other. If a budget shows no spend while the
+corresponding page under Services or Features does, a name mismatch is the first
+thing to check.
+
+The derivation, for anyone who wants to reproduce it:
 
 ```go
-// AgentNameToUUID converts an agent name string to a deterministic UUID v5
+// The same derivation is used for a service name and an agent name.
+// ScopeNameToUUID converts the name to a deterministic UUID v5
 // (SHA-1, DNS namespace) so it can be stored in the UUID-typed scope_id column.
-func AgentNameToUUID(agentName string) string {
+func ScopeNameToUUID(name string) string {
     // DNS namespace UUID: 6ba7b810-9dad-11d1-80b4-00c04fd430c8
     ns := []byte{0x6b, 0xa7, 0xb8, 0x10, ...}
     h := sha1.New()
@@ -292,7 +312,7 @@ Properties:
 - Two agents with the same name across different tenants share the same UUID, but they are separated by `tenant_id` in every query
 - Agent names are case-sensitive — `Claude-Code` and `claude-code` are different agents
 
-At budget-resolution time, the proxy reads `X-Tolvyn-Agent`, runs the same UUID derivation, and queries `WHERE scope_id::text = $4`. No reverse-lookup is needed.
+At budget-resolution time the proxy reads the header, runs the same derivation, and matches on the result. No reverse lookup is needed, and no name is stored in the matching column — the budget's display name is kept separately so the dashboard can show it back to you.
 
 ---
 

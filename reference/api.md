@@ -391,8 +391,9 @@ All require JWT.
 | Field | Type | Required | Description |
 |---|---|---|---|
 | `scope_type` | string | no | `organization` (default), `team`, `service`, or `agent` — the scopes the budget resolver enforces |
-| `scope_id` | string (nullable) | when applicable | Team ID / service name (NULL for `organization`; for `agent` use `agent_name`) |
-| `agent_name` | string | when `scope_type=agent` | The agent identifier (UUID is derived from this) |
+| `scope_id` | string (uuid, nullable) | when `scope_type=team` | The team's id. **Ignored for `service` and `agent`** — pass the name instead. NULL for `organization` |
+| `service_name` | string | when `scope_type=service` | The service name, exactly as your requests send it in `X-Tolvyn-Service`. TOLVYN derives the stored UUID from it; omitting it returns `400 service_name_required` |
+| `agent_name` | string | when `scope_type=agent` | The agent name, exactly as your requests send it in `X-Tolvyn-Agent`. Same derivation; omitting it returns `400 agent_name_required` |
 | `amount_usd` | number | yes | Must be > 0 |
 | `period` | string | no | `daily`, `weekly`, or `monthly` (default) |
 | `mode` | string | no | `soft` (default — alert only), `hard` (block at the proxy), or `approval` (block at the cap but record a pending approval an admin can grant) |
