@@ -88,7 +88,7 @@ client = OpenAI(
 )
 
 response = client.chat.completions.create(
-    model="gpt-4o",
+    model="gpt-4o-mini",
     messages=[{"role": "user", "content": "Hello"}],
 )
 print(response.choices[0].message.content)
@@ -111,7 +111,7 @@ const client = new OpenAI({
 });
 
 const response = await client.chat.completions.create({
-  model: 'gpt-4o',
+  model: 'gpt-4o-mini',
   messages: [{ role: 'user', content: 'Hello' }],
 });
 console.log(response.choices[0].message.content);
@@ -144,7 +144,7 @@ func main() {
     })
 
     resp, err := client.Chat.Completions.New(context.Background(), oai.ChatCompletionNewParams{
-        Model: oai.F(oai.ChatModelGPT4o),
+        Model: oai.F(oai.ChatModelGPT4oMini),
         Messages: oai.F([]oai.ChatCompletionMessageParamUnion{
             oai.ChatCompletionUserMessageParam{
                 Role: oai.F(oai.ChatCompletionUserMessageParamRoleUser),
@@ -171,7 +171,7 @@ curl https://proxy.tolvyn.io/v1/proxy/openai/v1/chat/completions \
   -H "Authorization: Bearer tlv_live_aB3xK9mP2vQ8nF4hR7sT1uW5yE6dC0gJ" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "gpt-4o",
+    "model": "gpt-4o-mini",
     "messages": [{"role": "user", "content": "Hello"}]
   }'
 ```

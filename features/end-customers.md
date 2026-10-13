@@ -53,7 +53,7 @@ curl https://proxy.tolvyn.io/v1/proxy/openai/v1/chat/completions \
   -H "Authorization: Bearer tlv_live_..." \
   -H "X-Tolvyn-End-Customer: acme-corp" \
   -H "Content-Type: application/json" \
-  -d '{"model":"gpt-4o","messages":[{"role":"user","content":"Hello"}]}'
+  -d '{"model":"gpt-4o-mini","messages":[{"role":"user","content":"Hello"}]}'
 ```
 
 Combine with other attribution headers as needed — see [combining](#combining-with-team-insights) below.
@@ -74,7 +74,7 @@ client = OpenAI(tolvyn_api_key="tlv_live_...", service="ticket-summarizer")
 
 # Per request, inside your handler — the id comes from your own context:
 resp = client.chat.completions.create(
-    model="gpt-4o",
+    model="gpt-4o-mini",
     messages=[{"role": "user", "content": prompt}],
     extra_headers={"X-Tolvyn-End-Customer": current_user.account_id},
 )
@@ -90,7 +90,7 @@ const client = new OpenAI({ tolvynApiKey: 'tlv_live_...', service: 'ticket-summa
 
 // Per request, inside your handler:
 const resp = await client.chat.completions.create(
-  { model: 'gpt-4o', messages: [{ role: 'user', content: prompt }] },
+  { model: 'gpt-4o-mini', messages: [{ role: 'user', content: prompt }] },
   { headers: { 'X-Tolvyn-End-Customer': req.user.accountId } },
 );
 ```
@@ -234,7 +234,7 @@ client = OpenAI(
 )
 
 resp = client.chat.completions.create(
-    model="gpt-4o",
+    model="gpt-4o-mini",
     messages=[{"role": "user", "content": prompt}],
     extra_headers={
         "X-Tolvyn-User": agent.email,                 # your employee handling the request

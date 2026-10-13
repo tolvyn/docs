@@ -36,7 +36,7 @@ from tolvyn import OpenAI
 client = OpenAI(tolvyn_api_key="tlv_live_aB3xK9mP2vQ8nF4hR7sT1uW5yE6dC0gJ")
 
 response = client.chat.completions.create(
-    model="gpt-4o",
+    model="gpt-4o-mini",
     messages=[{"role": "user", "content": "Hello"}],
 )
 print(response.choices[0].message.content)
@@ -61,7 +61,7 @@ client = OpenAI(
 )
 
 response = client.chat.completions.create(
-    model="gpt-4o",
+    model="gpt-4o-mini",
     messages=[{"role": "user", "content": "Hello"}],
 )
 ```
@@ -75,7 +75,7 @@ client = AsyncOpenAI(tolvyn_api_key="tlv_live_...")
 
 async def main():
     response = await client.chat.completions.create(
-        model="gpt-4o",
+        model="gpt-4o-mini",
         messages=[{"role": "user", "content": "Hello"}],
     )
     print(response.choices[0].message.content)
@@ -355,7 +355,7 @@ async def main():
 
     openai_resp, anthropic_resp = await asyncio.gather(
         openai_client.chat.completions.create(
-            model="gpt-4o",
+            model="gpt-4o-mini",
             messages=[{"role": "user", "content": "Hello"}],
         ),
         anthropic_client.messages.create(

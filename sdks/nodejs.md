@@ -46,7 +46,7 @@ const client = new OpenAI({
 });
 
 const response = await client.chat.completions.create({
-  model: 'gpt-4o',
+  model: 'gpt-4o-mini',
   messages: [{ role: 'user', content: 'Hello' }],
 });
 console.log(response.choices[0].message.content);
@@ -69,7 +69,7 @@ const client = new OpenAI({
 });
 
 const response = await client.chat.completions.create({
-  model: 'gpt-4o',
+  model: 'gpt-4o-mini',
   messages: [{ role: 'user', content: 'Hello' }],
 });
 ```
@@ -346,7 +346,7 @@ const opts: TolvynOpenAIOptions = {
 const client = new OpenAI(opts);
 
 const resp = await client.chat.completions.create({
-  model: 'gpt-4o',
+  model: 'gpt-4o-mini',
   messages: [{ role: 'user', content: 'Hello' }],
 });
 
