@@ -125,7 +125,7 @@ All Helicone headers are stripped before the request reaches OpenAI — they wil
 | Per-user attribution | ✅ | ✅ |
 | Budget enforcement | ❌ | ✅ |
 | Hard kill switch | ❌ | ✅ |
-| Immutable audit ledger | ❌ | ✅ |
+| Tamper-evident audit ledger | ❌ | ✅ |
 | Per-customer attribution | ❌ | ✅ |
 | Invoice reconciliation | ❌ | ✅ |
 | Savings analysis | ❌ | ✅ |

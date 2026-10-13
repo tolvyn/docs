@@ -134,7 +134,7 @@ Your client never holds a real provider key again.
 | Multi-provider routing | ✅ | ✅ |
 | Budget enforcement | limited | ✅ |
 | Hard kill switch | ❌ | ✅ |
-| Immutable audit ledger | ❌ | ✅ |
+| Tamper-evident audit ledger | ❌ | ✅ |
 | Per-customer attribution | ❌ | ✅ |
 | Invoice reconciliation | ❌ | ✅ |
 | Savings analysis | ❌ | ✅ |

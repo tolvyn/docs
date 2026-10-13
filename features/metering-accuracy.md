@@ -43,4 +43,4 @@ This is expected and correctly priced — the cost uses the canonical family rat
 
 - [Spend Quotas → Burn-rate forecast](spend-quotas.md#burn-rate-forecast) — forecasts are estimates built on this metering
 - [Reconciliation](reconciliation.md)
-- [Immutable Ledger](ledger.md)
+- [Tamper-Evident Ledger](ledger.md)

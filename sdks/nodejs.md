@@ -213,7 +213,7 @@ console.log(response.choices[0].message.content)
 | `agent` | `string` | `undefined` | Sent as `X-Tolvyn-Agent`. |
 | `user` | `string` | `undefined` | Sent as `X-Tolvyn-User`. |
 | `endCustomer` | `string` | `undefined` | Sent as `X-Tolvyn-End-Customer`. |
-| `failOpen` | `boolean` | `true` | Enable automatic fallback to the provider direct when the proxy is unreachable. Requires a provider key. Non-functional on Google. |
+| `failOpen` | `boolean` | `true` | Enable automatic fallback to the provider direct when the proxy is unreachable. Requires a provider key. On `Google` it covers `generateContent`, `generateContentStream`, `countTokens`, `embedContent` and `batchEmbedContents`; a `startChat` session is not covered. |
 | `openAIApiKey` | `string` | `undefined` (env: `OPENAI_API_KEY`) | Provider key for fail-open fallback. `OpenAI` only. Note the capitalization: `openAIApiKey` (camelCase with `AI` upper). |
 | `anthropicApiKey` | `string` | `undefined` (env: `ANTHROPIC_API_KEY`) | Provider key for fail-open fallback. `Anthropic` only. |
 | `googleApiKey` | `string` | `undefined` (env: `GOOGLE_API_KEY`) | Provider key — `Google` only. Currently stored but unused (see Google limitations). |
@@ -307,7 +307,9 @@ Requests that fall back to the provider directly **bypass the TOLVYN proxy**. Th
 
 ### Note on Google
 
-The `failOpen` option on the `Google` class is currently a no-op. There is no fallback transport when the proxy is unreachable.
+`failOpen` works on the `Google` class as of v1.0.10 (v1.0.6–v1.0.8 wrap `generateContent` only), provided `googleApiKey` is set: the SDK wraps `generateContent`, `generateContentStream`, `countTokens`, `embedContent` and `batchEmbedContents`, and a proxy-unreachable error retries against a direct `GoogleGenerativeAI` client.
+
+**The one gap:** a chat session created with `startChat()` has separate plumbing and is **not** wrapped, so its calls fail instead of falling back.
 
 ---
 

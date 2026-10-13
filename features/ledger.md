@@ -1,4 +1,4 @@
-# Immutable Ledger
+# Tamper-Evident Ledger
 
 The ledger is TOLVYN's answer to the question: **how do I prove what my AI costs were on a specific date, to an auditor who doesn't trust my dashboard?**
 

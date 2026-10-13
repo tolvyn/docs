@@ -2,7 +2,7 @@
 
 An evidence package is a signed, self-contained ZIP that lets an auditor verify your AI spend **offline, without a TOLVYN account, without any TOLVYN secret, and without trusting your dashboard**. It contains the ledger records for a period, a signed manifest, the byte-level instructions for checking them by hand, and a working verifier that reproduces every hash from scratch.
 
-The [Immutable Ledger](ledger.md) makes your spend tamper-evident inside TOLVYN. An evidence package is how you hand that property to someone else.
+The [Tamper-Evident Ledger](ledger.md) makes your spend tamper-evident inside TOLVYN. An evidence package is how you hand that property to someone else.
 
 Available on **Scale** and **Enterprise**.
 
@@ -246,6 +246,6 @@ On Free, Starter and Growth the endpoint returns `402 feature_locked`. The [ledg
 
 ## See also
 
-- [Immutable Ledger](ledger.md) — how records are chained, and what chain integrity proves
+- [Tamper-Evident Ledger](ledger.md) — how records are chained, and what chain integrity proves
 - [Reconciliation](reconciliation.md) — comparing TOLVYN's figures against a provider invoice
 - [REST API](../reference/api.md) — the full endpoint reference

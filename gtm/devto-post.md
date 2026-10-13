@@ -1,4 +1,4 @@
-# How I built an immutable audit ledger for AI costs in Go
+# How I built a tamper-evident audit ledger for AI costs in Go
 
 ---
 
