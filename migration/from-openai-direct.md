@@ -108,7 +108,7 @@ Once the two lines are changed, TOLVYN automatically:
 
 - Logs every request with model, tokens, cost, and latency
 - Calculates cost in real-time using live pricing data
-- Stores an immutable audit ledger of all spend
+- Stores a tamper-evident audit ledger of all spend
 - Lets you set budgets and get alerts when limits are approached
 
 No configuration required. The dashboard is live the moment the first request goes through.

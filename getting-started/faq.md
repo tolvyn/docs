@@ -38,7 +38,7 @@ Yes. Tenant data is isolated at the database level using PostgreSQL row-level se
 
 ## What latency does TOLVYN add?
 
-Metering and ledger writes happen asynchronously, after your application already has the provider response. The proxy adds only the network hop to and from the TOLVYN server — typically well under 50ms.
+Metering and ledger writes happen asynchronously, after your application already has the provider response. The proxy adds only the network hop to and from the TOLVYN server. We publish no figure for that hop: the only latency TOLVYN has measured is its own ledger-write path, not end-to-end proxy overhead, so measure it on your own traffic rather than planning around a number from us.
 
 ---
 
@@ -68,15 +68,15 @@ For standard requests on priced models, yes — costs come from the provider's o
 
 ---
 
-## What is the immutable ledger?
+## What is the tamper-evident ledger?
 
-Every request is appended to a SHA-256 hash-chained, HMAC-signed ledger, making any retroactive modification detectable — a tamper-evident audit trail for all AI spend. See [Immutable Ledger](../features/ledger.md).
+Every request is appended to a SHA-256 hash-chained, HMAC-signed ledger, making any retroactive modification detectable — a tamper-evident audit trail for all AI spend. See [Tamper-Evident Ledger](../features/ledger.md).
 
 ---
 
 ## How is this different from just reading my provider invoice?
 
-Your invoice tells you total spend. TOLVYN tells you which team, service, feature, agent, user, or end-customer drove each dollar; the cost trend over time (with anomaly alerts); whether each request was within budget at the time; and a verifiable, immutable record — across OpenAI, Anthropic, Google, and DeepSeek in one place.
+Your invoice tells you total spend. TOLVYN tells you which team, service, feature, agent, user, or end-customer drove each dollar; the cost trend over time (with anomaly alerts); whether each request was within budget at the time; and a verifiable, tamper-evident record — across OpenAI, Anthropic, Google, and DeepSeek in one place.
 
 ---
 

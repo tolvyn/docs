@@ -29,7 +29,7 @@
 * [End Customers](features/end-customers.md)
 * [Agent Budgets](features/agents.md)
 * [Pricing Changes](features/pricing-changes.md)
-* [Immutable Ledger](features/ledger.md)
+* [Tamper-Evident Ledger](features/ledger.md)
 * [Evidence Packages](features/evidence-packages.md)
 * [AI Cost Index](features/cost-index.md)
 

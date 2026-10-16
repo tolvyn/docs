@@ -63,7 +63,7 @@ Your provider key is encrypted at rest with AES-256-GCM under a server-side mast
 
 ---
 
-## 4. The immutable ledger
+## 4. The tamper-evident ledger
 
 Every metered request is appended to a tamper-evident, hash-chained ledger:
 
@@ -72,7 +72,7 @@ Every metered request is appended to a tamper-evident, hash-chained ledger:
 - **Record hash** over the canonical record payload (tenant, sequence, request id, cost, provider, model, tokens, budget/enforcement status, …).
 - **HMAC signature** over each record hash, using a server-side secret.
 
-Verify the chain any time via `GET /v1/ledger/verify`. Costs are stored in **microdollars** (1 USD = 1,000,000 µ$) to avoid floating-point error — see [Metering Accuracy](../features/metering-accuracy.md). Full details: [Immutable Ledger](../features/ledger.md).
+Verify the chain any time via `GET /v1/ledger/verify`. Costs are stored in **microdollars** (1 USD = 1,000,000 µ$) to avoid floating-point error — see [Metering Accuracy](../features/metering-accuracy.md). Full details: [Tamper-Evident Ledger](../features/ledger.md).
 
 ---
 

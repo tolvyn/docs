@@ -623,7 +623,7 @@ tolvyn audit --last 30d --format csv > audit-may.csv
 
 ### `tolvyn ledger`
 
-View, verify, and export the immutable hash-chained cost ledger.
+View, verify, and export the tamper-evident hash-chained cost ledger.
 
 #### `tolvyn ledger list` (alias `ls`)
 
