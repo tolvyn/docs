@@ -303,10 +303,16 @@ surviving predecessor to anchor against. Verification then reports `previous_has
 chain that is otherwise perfect: the same string real tampering produces. A customer saw a failure
 on intact evidence. Redaction exists so that cannot happen again.
 
-**The two goals were never actually in conflict.** `ledger_records` is content-blind — no prompts,
-no responses, no end-user identity, and one path string of identifying content. Every column an
-erasure obligation attaches to lives on `requests`, and clearing those satisfies the obligation
-without destroying the chain.
+**What the ledger holds, precisely.** `ledger_records` holds no prompts, no responses and no
+end-user identity: the `X-Tolvyn-User` and `X-Tolvyn-End-Customer` values never reach it. It is
+not content-free, though. Its hash covers `hierarchy_path`, which includes the **service name** you
+send in `X-Tolvyn-Service`, and — for records written since ledger format v2 — `agent_id`, the
+**agent name** from `X-Tolvyn-Agent` or the API key. Those two values are kept for the life of the
+chain, because removing them would break every affected hash. Redaction clears everything else
+identifying, including the same service and agent values on the request record.
+
+If your service or agent names could identify a person, use neutral identifiers (for example
+`svc-billing`, `agent-7`) rather than names or email addresses.
 
 **Two consequences worth planning around.** If you must retain records for a fixed period — whatever
 your regulator, auditor or contracts require — pick a plan whose window covers it, and check the
