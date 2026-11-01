@@ -199,12 +199,12 @@ If neither the `TolvynAPIKey` field nor the `TOLVYN_API_KEY` environment variabl
 
 ## DeepSeek (OpenAI-compatible)
 
-DeepSeek's API is OpenAI-compatible, so there is **no DeepSeek sub-package** — use the **OpenAI** client (`tolvyn-go/openai`) with `ProxyURL` pointed at the DeepSeek proxy path and model `deepseek-flash`.
+Use the `deepseek` sub-package (`github.com/tolvyn/tolvyn-go/deepseek`). DeepSeek's API is OpenAI-compatible, so its client is used exactly like the OpenAI one, and it already points at TOLVYN's DeepSeek proxy path.
 
 ```go
-client := tolvynopenai.NewClient(tolvyn.ClientOptions{
-    TolvynAPIKey: "tlv_live_...",
-    ProxyURL:     "https://proxy.tolvyn.io/v1/proxy/deepseek/",
+client := deepseek.NewClient(tolvyn.ClientOptions{
+    TolvynAPIKey:   "tlv_live_...",
+    ProviderAPIKey: "sk-...", // used only for fail-open fallback
 })
 
 resp, err := client.Chat.Completions.New(context.Background(), oai.ChatCompletionNewParams{
@@ -224,7 +224,7 @@ resp, err := client.Chat.Completions.New(context.Background(), oai.ChatCompletio
 ```
 
 - Use `oai.ChatModel("deepseek-flash")` (a plain string cast) since there is no named constant for it.
-- Add your DeepSeek provider key in the **dashboard** (**Providers** → DeepSeek, at `/providers`). Your code only ever holds the TOLVYN key; TOLVYN swaps in the DeepSeek key when forwarding.
+- Add your DeepSeek provider key in the **dashboard** (**Providers** → DeepSeek, at `/providers`); TOLVYN uses it when forwarding. `ProviderAPIKey` (or `DEEPSEEK_API_KEY`) is only for fail-open, which goes straight to DeepSeek. Don't point the OpenAI client at the DeepSeek path: its fallback goes to OpenAI.
 - **Served model:** DeepSeek may answer as a different model name than the one you sent (for example `deepseek-v4-flash`); usage shows the name DeepSeek reports, at that model's rate. The older names `deepseek-chat` and `deepseek-reasoner` still work.
 
 ---

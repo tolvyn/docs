@@ -195,14 +195,14 @@ Google(
 
 ## DeepSeek (OpenAI-compatible)
 
-DeepSeek's API is OpenAI-compatible, so there is **no `DeepSeek` client** — use the `OpenAI` client with `proxy_url` pointed at the DeepSeek proxy path and `model="deepseek-flash"`.
+Use the `DeepSeek` client. DeepSeek's API is OpenAI-compatible, so it is used exactly like `OpenAI`, and it already points at TOLVYN's DeepSeek proxy path.
 
 ```python
-from tolvyn import OpenAI
+from tolvyn import DeepSeek
 
-client = OpenAI(
+client = DeepSeek(
     tolvyn_api_key="tlv_live_...",
-    proxy_url="https://proxy.tolvyn.io/v1/proxy/deepseek/",
+    deepseek_api_key="sk-...",   # used only for fail-open fallback
 )
 
 response = client.chat.completions.create(
@@ -212,8 +212,8 @@ response = client.chat.completions.create(
 print(response.choices[0].message.content)
 ```
 
-- `AsyncOpenAI` works identically with the same `proxy_url`.
-- Add your DeepSeek provider key in the **dashboard** (**Providers** → DeepSeek, at `/providers`). Your SDK only ever holds the TOLVYN key; TOLVYN swaps in the DeepSeek key when forwarding.
+- `AsyncDeepSeek` works identically.
+- Add your DeepSeek provider key in the **dashboard** (**Providers** → DeepSeek, at `/providers`); TOLVYN uses it when forwarding. `deepseek_api_key` (or `DEEPSEEK_API_KEY`) is only for fail-open, which goes straight to DeepSeek. Don't point the `OpenAI` client at the DeepSeek path: its fallback goes to OpenAI.
 - **Served model:** DeepSeek may answer as a different model name than the one you sent (for example `deepseek-v4-flash`); usage shows the name DeepSeek reports, at that model's rate. The older names `deepseek-chat` and `deepseek-reasoner` still work.
 
 ---

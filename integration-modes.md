@@ -85,18 +85,15 @@ This means that in SDK mode a TOLVYN outage does not have to take your applicati
 
 ## DeepSeek (OpenAI-compatible)
 
-DeepSeek's API is OpenAI-compatible, so **there is no separate DeepSeek client** — you use the **OpenAI client** pointed at TOLVYN's DeepSeek proxy path, with `model: "deepseek-flash"`.
+DeepSeek's API is OpenAI-compatible: the SDKs' `DeepSeek` client is used exactly like the OpenAI one and already points at TOLVYN's DeepSeek proxy path.
 
-**SDK mode** — override the proxy URL on the OpenAI client:
+**SDK mode** — use the `DeepSeek` client, whose fail-open fallback goes to DeepSeek (an `OpenAI` client pointed at this path would fall back to OpenAI):
 
 ```python
 # Python
-from tolvyn import OpenAI
+from tolvyn import DeepSeek
 
-client = OpenAI(
-    tolvyn_api_key="tlv_live_...",
-    proxy_url="https://proxy.tolvyn.io/v1/proxy/deepseek/",
-)
+client = DeepSeek(tolvyn_api_key="tlv_live_...")
 resp = client.chat.completions.create(
     model="deepseek-flash",
     messages=[{"role": "user", "content": "Hello"}],
@@ -105,12 +102,9 @@ resp = client.chat.completions.create(
 
 ```javascript
 // Node.js
-import { OpenAI } from 'tolvyn'
+import { DeepSeek } from 'tolvyn'
 
-const client = new OpenAI({
-  tolvynApiKey: 'tlv_live_...',
-  proxyUrl: 'https://proxy.tolvyn.io/v1/proxy/deepseek/',
-})
+const client = new DeepSeek({ tolvynApiKey: 'tlv_live_...' })
 const resp = await client.chat.completions.create({
   model: 'deepseek-flash',
   messages: [{ role: 'user', content: 'Hello' }],
