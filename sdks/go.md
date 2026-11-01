@@ -199,7 +199,7 @@ If neither the `TolvynAPIKey` field nor the `TOLVYN_API_KEY` environment variabl
 
 ## DeepSeek (OpenAI-compatible)
 
-DeepSeek's API is OpenAI-compatible, so there is **no DeepSeek sub-package** — use the **OpenAI** client (`tolvyn-go/openai`) with `ProxyURL` pointed at the DeepSeek proxy path and model `deepseek-chat`.
+DeepSeek's API is OpenAI-compatible, so there is **no DeepSeek sub-package** — use the **OpenAI** client (`tolvyn-go/openai`) with `ProxyURL` pointed at the DeepSeek proxy path and model `deepseek-flash`.
 
 ```go
 client := tolvynopenai.NewClient(tolvyn.ClientOptions{
@@ -208,7 +208,7 @@ client := tolvynopenai.NewClient(tolvyn.ClientOptions{
 })
 
 resp, err := client.Chat.Completions.New(context.Background(), oai.ChatCompletionNewParams{
-    Model: oai.F(oai.ChatModel("deepseek-chat")),
+    Model: oai.F(oai.ChatModel("deepseek-flash")),
     Messages: oai.F([]oai.ChatCompletionMessageParamUnion{
         oai.ChatCompletionUserMessageParam{
             Role: oai.F(oai.ChatCompletionUserMessageParamRoleUser),
@@ -223,9 +223,9 @@ resp, err := client.Chat.Completions.New(context.Background(), oai.ChatCompletio
 })
 ```
 
-- Use `oai.ChatModel("deepseek-chat")` (a plain string cast) since there is no named constant for it.
+- Use `oai.ChatModel("deepseek-flash")` (a plain string cast) since there is no named constant for it.
 - Add your DeepSeek provider key in the **dashboard** (**Providers** → DeepSeek, at `/providers`). Your code only ever holds the TOLVYN key; TOLVYN swaps in the DeepSeek key when forwarding.
-- **Served model:** DeepSeek resolves `deepseek-chat` to a concrete served model server-side, so usage may show as e.g. `deepseek-v4-flash` in the dashboard — it is **billed at the `deepseek-chat` rate** (expected, correctly priced).
+- **Served model:** DeepSeek may answer as a different model name than the one you sent (for example `deepseek-v4-flash`); usage shows the name DeepSeek reports, at that model's rate. The older names `deepseek-chat` and `deepseek-reasoner` still work.
 
 ---
 

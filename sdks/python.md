@@ -195,7 +195,7 @@ Google(
 
 ## DeepSeek (OpenAI-compatible)
 
-DeepSeek's API is OpenAI-compatible, so there is **no `DeepSeek` client** — use the `OpenAI` client with `proxy_url` pointed at the DeepSeek proxy path and `model="deepseek-chat"`.
+DeepSeek's API is OpenAI-compatible, so there is **no `DeepSeek` client** — use the `OpenAI` client with `proxy_url` pointed at the DeepSeek proxy path and `model="deepseek-flash"`.
 
 ```python
 from tolvyn import OpenAI
@@ -206,7 +206,7 @@ client = OpenAI(
 )
 
 response = client.chat.completions.create(
-    model="deepseek-chat",
+    model="deepseek-flash",
     messages=[{"role": "user", "content": "Hello"}],
 )
 print(response.choices[0].message.content)
@@ -214,7 +214,7 @@ print(response.choices[0].message.content)
 
 - `AsyncOpenAI` works identically with the same `proxy_url`.
 - Add your DeepSeek provider key in the **dashboard** (**Providers** → DeepSeek, at `/providers`). Your SDK only ever holds the TOLVYN key; TOLVYN swaps in the DeepSeek key when forwarding.
-- **Served model:** DeepSeek resolves `deepseek-chat` to a concrete served model server-side, so usage may show as e.g. `deepseek-v4-flash` in the dashboard — it is **billed at the `deepseek-chat` rate** (expected, correctly priced).
+- **Served model:** DeepSeek may answer as a different model name than the one you sent (for example `deepseek-v4-flash`); usage shows the name DeepSeek reports, at that model's rate. The older names `deepseek-chat` and `deepseek-reasoner` still work.
 
 ---
 

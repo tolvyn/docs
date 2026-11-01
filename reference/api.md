@@ -1088,16 +1088,16 @@ Same pattern. The TOLVYN API key may be passed as `Authorization: Bearer` or `x-
 
 ### `/v1/proxy/deepseek/*`
 
-DeepSeek is OpenAI-compatible — call it on this path with the OpenAI request shape and `model: "deepseek-chat"`. Authentication is `Authorization: Bearer tlv_live_...` (or `x-api-key`).
+DeepSeek is OpenAI-compatible — call it on this path with the OpenAI request shape and `model: "deepseek-flash"`. Authentication is `Authorization: Bearer tlv_live_...` (or `x-api-key`).
 
 ```bash
 curl https://proxy.tolvyn.io/v1/proxy/deepseek/chat/completions \
   -H "Authorization: Bearer tlv_live_..." \
   -H "Content-Type: application/json" \
-  -d '{"model":"deepseek-chat","messages":[{"role":"user","content":"Hello"}]}'
+  -d '{"model":"deepseek-flash","messages":[{"role":"user","content":"Hello"}]}'
 ```
 
-DeepSeek resolves `deepseek-chat` to a concrete served model, so usage may show as e.g. `deepseek-v4-flash` — it is billed at the `deepseek-chat` rate.
+DeepSeek may answer as a different model name than the one you sent (for example `deepseek-v4-flash`); usage shows the name DeepSeek reports, at that model's rate. The older names `deepseek-chat` and `deepseek-reasoner` still work.
 
 ### Proxy-specific status codes
 
