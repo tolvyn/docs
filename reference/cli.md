@@ -469,7 +469,7 @@ tolvyn models --provider openai
 MODEL                                    PROVIDER     FAMILY             IN/MTok    OUT/MTok
 gpt-4o                                   openai       gpt-4o             $2.5000    $10.0000
 gpt-4o-mini                              openai       gpt-4o-mini        $0.1500    $0.6000
-gpt-3.5-turbo                            openai       gpt-3.5-turbo      $0.5000    $1.5000
+gpt-6-luna                               openai       gpt-6-luna         $0.1000    $0.5000
 
 3 model(s)
 ```
@@ -490,7 +490,7 @@ tolvyn models diff --last 30d --provider openai
 ```
 MODEL                PROVIDER     FIELD    BEFORE       AFTER        CHANGE%  IMPACT       DATE
 gpt-4o               openai       input    $5.0000      $2.5000      -50.00%  $42.10 saved 2026-05-01
-o3-mini              openai       output   $4.4000      $4.4000      0.00%    $0.00        2026-04-20
+gpt-6-luna           openai       output   $0.5000      $0.5000      0.00%    $0.00        2026-04-20
 
 Total impact: -$42.10
 ```

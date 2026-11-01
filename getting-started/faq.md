@@ -46,6 +46,11 @@ Metering and ledger writes happen asynchronously, after your application already
 
 **OpenAI**, **Anthropic**, **Google (Gemini)**, and **DeepSeek** — all verified end-to-end. Any model offered by these providers works automatically; you don't configure individual models. DeepSeek is OpenAI-compatible — see [Integration Modes → DeepSeek](../integration-modes.md#deepseek-openai-compatible).
 
+**Not priced yet.** These Google models have no TOLVYN price, so their cost is not
+counted: image models `gemini-nano-banana-2.1`, `gemini-3.1-flash-image`,
+`gemini-3.1-flash-lite-image`, `gemini-3-pro-image` and `gemini-2.5-flash-image`, and
+embedding models `gemini-embedding-2` and `gemini-embedding-001`.
+
 For a provider not yet supported, use that provider's SDK directly and email founder@tolvyn.io to request it.
 
 ---

@@ -809,7 +809,8 @@ Priced models with their current rates. Optional `?provider=` filters by provide
 omitted when not set, so treat all four as optional. `model_family` in particular is
 absent for most rows.
 
-`deprecated_at` is an RFC 3339 timestamp and appears **only on models we have retired**:
+Models we have retired are **left out by default**. Add `?include_deprecated=true` to
+include them; on those rows `deprecated_at` is an RFC 3339 timestamp:
 
 ```json
 { "model_id": "gpt-4-0125-preview", "provider": "openai",
@@ -818,11 +819,11 @@ absent for most rows.
   "deprecated_at": "2026-10-05T09:12:44Z" }
 ```
 
-**This list is not filtered by `deprecated_at`, and retiring a model does not block
-requests for it.** Retired models stay in the response so that tools filtering
-historical usage can still name a model you used and paid for. If your code picks a
-model to call from this list, skip entries that carry `deprecated_at` — a retired
-model will usually be rejected by the upstream provider.
+**Retiring a model does not block requests for it**, and usage you already paid for
+keeps its model name. Use `?include_deprecated=true` when a tool needs to name a
+retired model from your historical usage. Without it, the list holds only models
+TOLVYN still offers; a retired model will usually be rejected by the upstream
+provider.
 
 ### `GET /v1/models/changes`
 
