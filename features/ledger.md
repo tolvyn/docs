@@ -37,10 +37,11 @@ Two tenants that happened to start with the same first proxied request would sti
 
 ### Record structure
 
-Every ledger row's `record_hash` is `SHA-256` of a **canonical JSON serialization** of the 14 fields below, in this exact order:
+Every ledger row's `record_hash` is `SHA-256` of a **canonical JSON serialization** of its fields, in an exact order. Records written since 2026-08-31 use **format 2**, with the 16 fields below. Older records use format 1: the same fields without `record_format_version` and `agent_id`, 14 in all. A chain can hold both, and each record is checked under its own format.
 
 ```json
 {
+  "record_format_version": 2,
   "tenant_id": "9f8d6a4e-2c33-4b1e-a3f0-21d8f2c4b5c1",
   "sequence_number": 1843,
   "previous_hash": "<hex of previous record_hash>",
@@ -54,7 +55,8 @@ Every ledger row's `record_hash` is `SHA-256` of a **canonical JSON serializatio
   "tokens_input": 120,
   "tokens_output": 35,
   "budget_status": "ok",
-  "enforcement_action": "allow"
+  "enforcement_action": "allow",
+  "agent_id": null
 }
 ```
 
@@ -70,7 +72,7 @@ hashes, so the canonical form is worth stating exactly:
 - **`&`, `<` and `>` are escaped** as `\u0026`, `\u003c` and `\u003e`. This is Go's default HTML
   escaping in `encoding/json`, and it applies to string values such as `hierarchy_path`. A path like
   `/r&d/summarizer` is hashed as `/r\u0026d/summarizer`.
-- **All 14 fields are always present**, including empty strings and zeros. Nothing is omitted.
+- **Every field of the record's format is always present**, including empty strings and zeros. Nothing is omitted. In format 2, `agent_id` is a string, or the JSON literal `null` when no agent applied.
 
 Given those rules, `SHA-256` over the resulting bytes reproduces `record_hash` exactly.
 
@@ -97,7 +99,7 @@ mac.Write([]byte(recordHash))
 hmacSignature := hex.EncodeToString(mac.Sum(nil))
 ```
 
-The HMAC adds a second layer of defense: even an attacker with direct database write access cannot forge a valid record without also knowing the secret. The SHA-256 chain catches accidental or external tampering; the HMAC catches insider tampering. Different threat models, both addressed.
+The HMAC adds a second layer of defense: someone who can write to the database but cannot reach the server, where the secret lives, cannot forge a valid record. **It does not protect against someone with access to the server**, who holds the secret too. The SHA-256 chain catches accidental or external tampering; the HMAC catches tampering through the database alone.
 
 The signing secret must be at least 32 bytes. The server refuses to start without it set.
 
@@ -126,6 +128,7 @@ From `recordPayload`:
 
 | Field | Meaning |
 |---|---|
+| `record_format_version` | Which canonical form the hash covers: `1` or `2`. In format 2 it leads the hashed payload |
 | `tenant_id` | Owner — RLS enforces visibility |
 | `sequence_number` | Gap-free integer per tenant, starts at 1 |
 | `previous_hash` | Hash of the prior record (or `genesisHash` for record 1) |
@@ -139,6 +142,7 @@ From `recordPayload`:
 | `tokens_input` / `tokens_output` | Provider-reported counts |
 | `budget_status` | `ok`, `warning`, `exceeded` at request time |
 | `enforcement_action` | `allow` on every record — see the note below |
+| `agent_id` | Format 2 only: the agent attributed to the request, or `null` |
 
 **A blocked request does not appear in the ledger at all.** The ledger is written only after a
 request has reached the provider and been metered, and a budget block returns its `429` before that
@@ -153,7 +157,7 @@ Blocked requests are audited separately from this chain. If you need to prove th
 
 ## Verification
 
-`GET /v1/ledger/verify` walks the chain and re-derives every hash and HMAC. Parameters:
+`GET /v1/ledger/verify` walks the chain and re-derives every hash and HMAC. **It is available on every plan, to any signed-in user of the account.** Parameters:
 
 | Param | Default | Description |
 |---|---|---|
@@ -198,7 +202,7 @@ Anything other than `valid: true` means the chain has been compromised at or aft
 
 ## Exporting the ledger
 
-`GET /v1/ledger?format=csv` streams every column to a CSV file. Includes `record_hash`, `previous_hash`, and `hmac_signature` so the export can be verified **offline** against the server's signing secret without ever talking to TOLVYN again.
+`GET /v1/ledger?format=csv` streams the columns below to a CSV file. CSV export requires Starter or higher.
 
 ```bash
 curl "https://api.tolvyn.io/v1/ledger?format=csv&from=2026-05-01T00:00:00Z&to=2026-06-01T00:00:00Z" \
@@ -214,12 +218,15 @@ cost_usd, hierarchy_path, budget_status, enforcement_action,
 tokens_input, tokens_output, record_hash, previous_hash, hmac_signature
 ```
 
-For auditors: hand them the CSV. **Do not hand over the signing secret.**
+**The CSV cannot prove a record's hash on its own.** It does not carry `record_format_version`,
+`agent_id`, `tenant_id` or `modality`, which are hashed, so an auditor cannot re-derive `record_hash`
+from it. What it does show is continuity: each `previous_hash` equals the `record_hash` before it.
 
-They do not need it. The `record_hash` chain is keyed on nothing — an auditor re-derives each hash
-from the record's own fields using the canonical form described above, and walks `previous_hash` from
-one record to the next, with any SHA-256 library and no secret of yours. That is the whole integrity
-proof, and it works without trusting TOLVYN's verify endpoint.
+For independent proof, use a signed [evidence package](evidence-packages.md) (Scale and Enterprise):
+it carries every hashed field and a standalone verifier. On other plans, `GET /v1/ledger/verify` checks
+every hash and HMAC, but that means trusting TOLVYN's answer.
+
+**Do not hand over the signing secret.** No check an auditor can run needs it.
 
 The `hmac_signature` column is a *separate* control with a different purpose: it proves a record was
 written by TOLVYN rather than forged by someone with direct database access. It is an internal
@@ -228,9 +235,8 @@ can mint a valid signature for any record of any tenant — which is exactly wha
 be able to do, and exactly why handing it over destroys the control it was meant to provide.
 
 On the **Scale** and **Enterprise** plans a signed [evidence package](evidence-packages.md) is
-available — the records, a signed manifest, and a standalone verifier the auditor runs themselves. It is the stronger version of
-this flow and it also requires no secret. On Free, Starter and Growth the CSV above is the export to
-use (CSV export requires Starter or higher).
+available — the records, a signed manifest, and a standalone verifier the auditor runs themselves. It
+requires no secret.
 
 ---
 
@@ -293,7 +299,7 @@ period.
 `ledger_records.request_id REFERENCES requests(id)` carries `NO ACTION`, so a surviving ledger row
 *blocks* the deletion of its request with a foreign-key violation. Keeping the ledger while deleting
 requests is not something the database will do. `ON DELETE SET NULL` is not an alternative either:
-`request_id` is one of the fourteen fields inside the hashed payload, so nulling it would change
+`request_id` is one of the fields inside the hashed payload, so nulling it would change
 `record_hash` on every affected record. Redaction in place is the only mechanism that satisfies both
 an erasure obligation and the chain.
 
@@ -328,12 +334,12 @@ ledger CSV export is available from **Starter** up, and signed evidence packages
 
 ### Audit evidence
 
-For an external auditor (SOC 2, ISO 27001, financial audit): export the ledger CSV for the audit
-period and give them the canonical-form rules above so they can re-derive the chain themselves. **The
-signing secret is not part of what you hand over** — the hash chain verifies without it. On Scale and
-Enterprise, a signed [evidence package](evidence-packages.md) bundles the records, a signed
-manifest and a standalone verifier, which is the cleaner hand-off. Either way the auditor verifies independently, without
-trusting your dashboard.
+For an external auditor (SOC 2, ISO 27001, financial audit): on Scale and Enterprise, give them a
+signed [evidence package](evidence-packages.md). It bundles the records, a signed manifest and a
+standalone verifier, so the auditor verifies independently, without trusting your dashboard. On other
+plans, the ledger CSV shows the chain links for the period, and `GET /v1/ledger/verify` reports the
+result of TOLVYN's own check, which is not independent. **The signing secret is not part of what you
+hand over.**
 
 The audit period does **not** have to fit inside your plan's [retention
 window](#retention-and-the-verified-range). Retention never deletes a ledger record, so the chain

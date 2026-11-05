@@ -240,7 +240,7 @@ To obtain a package, use the **Ledger Verify** page in the dashboard or call the
 | Scale | Yes |
 | Enterprise | Yes |
 
-On Free, Starter and Growth the endpoint returns `402 feature_locked`. The [ledger CSV export](ledger.md#exporting-the-ledger) is the export to use there — it carries the records and their hashes, so an auditor can still re-derive the chain, but there is no signed manifest and no bundled verifier.
+On Free, Starter and Growth the endpoint returns `402 feature_locked`. The [ledger CSV export](ledger.md#exporting-the-ledger) (Starter and Growth) shows the records and how their hashes link, but it does not carry every hashed field, so an auditor cannot re-derive a record's hash from it. `GET /v1/ledger/verify` checks the chain on every plan, but that relies on TOLVYN's answer.
 
 ---
 

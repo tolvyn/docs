@@ -178,6 +178,8 @@ All data is reachable via the public API:
 curl "https://api.tolvyn.io/v1/public/cost-index?provider=openai&days=30"
 ```
 
+Illustrative example; the numbers are not real data:
+
 ```json
 {
   "data": [
@@ -196,7 +198,7 @@ curl "https://api.tolvyn.io/v1/public/cost-index?provider=openai&days=30"
 }
 ```
 
-No authentication. CORS open. `Access-Control-Allow-Origin: *`.
+No authentication. `GET` responses carry `Access-Control-Allow-Origin: *`, so a page on any site can read them with a plain `fetch`. A request that needs a CORS preflight, such as one with custom headers, is not allowed from other sites.
 
 Query parameters:
 

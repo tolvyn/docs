@@ -723,7 +723,7 @@ JWT-required. Paginated hash-chained audit ledger of every proxied request. Acce
 }
 ```
 
-CSV export includes `previous_hash` and `hmac_signature` for offline chain verification.
+CSV export includes `previous_hash` and `hmac_signature`. It shows how the records link, but it does not carry every hashed field, so a record's hash cannot be re-derived from it.
 
 ### `GET /v1/ledger/verify`
 
