@@ -88,7 +88,7 @@ client = OpenAI(
 )
 
 response = client.chat.completions.create(
-    model="gpt-4o-mini",
+    model="gpt-6-luna",
     messages=[{"role": "user", "content": "Hello"}],
 )
 print(response.choices[0].message.content)
@@ -111,7 +111,7 @@ const client = new OpenAI({
 });
 
 const response = await client.chat.completions.create({
-  model: 'gpt-4o-mini',
+  model: 'gpt-6-luna',
   messages: [{ role: 'user', content: 'Hello' }],
 });
 console.log(response.choices[0].message.content);
@@ -144,7 +144,7 @@ func main() {
     })
 
     resp, err := client.Chat.Completions.New(context.Background(), oai.ChatCompletionNewParams{
-        Model: oai.F(oai.ChatModelGPT4oMini),
+        Model: oai.F("gpt-6-luna"),
         Messages: oai.F([]oai.ChatCompletionMessageParamUnion{
             oai.ChatCompletionUserMessageParam{
                 Role: oai.F(oai.ChatCompletionUserMessageParamRoleUser),
@@ -171,7 +171,7 @@ curl https://proxy.tolvyn.io/v1/proxy/openai/v1/chat/completions \
   -H "Authorization: Bearer tlv_live_aB3xK9mP2vQ8nF4hR7sT1uW5yE6dC0gJ" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "gpt-4o-mini",
+    "model": "gpt-6-luna",
     "messages": [{"role": "user", "content": "Hello"}]
   }'
 ```
@@ -239,7 +239,7 @@ Open [app.tolvyn.io/requests](https://app.tolvyn.io/requests).
 Within a few seconds of the request completing, you will see a row with:
 
 - Timestamp
-- Model (`gpt-4o`)
+- Model (`gpt-6-luna`)
 - Tokens in / out
 - Exact cost in USD
 - Latency

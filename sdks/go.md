@@ -47,7 +47,7 @@ func main() {
     })
 
     resp, err := client.Chat.Completions.New(context.Background(), oai.ChatCompletionNewParams{
-        Model: oai.F(oai.ChatModelGPT4oMini),
+        Model: oai.F("gpt-6-luna"),
         Messages: oai.F([]oai.ChatCompletionMessageParamUnion{
             oai.ChatCompletionUserMessageParam{
                 Role: oai.F(oai.ChatCompletionUserMessageParamRoleUser),
