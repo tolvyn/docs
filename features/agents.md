@@ -239,8 +239,10 @@ Every proxied request stores two values: `agent_id`, the agent it is attributed 
 `X-Tolvyn-Agent` header, or else the agent bound to the API key), and `agent_name`, the raw
 header as sent. Budgets, the kill switch and the Agents page use `agent_id`. View them:
 
-- **Dashboard:** **Agents** shows cost per agent; the **Requests** list has an Agent column
-  (`agent_id`); click a row and the detail panel shows `agent_name`
+- **Dashboard:** **Agents** shows requests, share and cost per agent over 7, 30 or 90 days. Requests
+  with no agent appear as `(unattributed)`, and those whose agent was cleared when they passed your
+  plan's data-retention window appear as `(redacted)`. The **Requests** list has an Agent column
+  (`agent_id`); click a row and the detail panel shows `agent_name` if the header was sent
 - **CLI:** `tolvyn requests --limit 5 --json | jq '.data[] | {agent: .agent_id, cost: .cost_usd}'`
 - **API:** `GET /v1/usage/by-agent` for cost per agent; `GET /v1/usage/requests` rows carry
   `agent_id` (omitted when there is none); `GET /v1/usage/requests/{id}` carries `agent_name`
