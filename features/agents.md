@@ -235,11 +235,17 @@ The pre-flight cost estimate is applied to agent budgets as well — the request
 
 ## Agent attribution in the request log
 
-Every proxied request stores the raw header value in the `requests.agent_name` column. View it:
+Every proxied request stores two values: `agent_id`, the agent it is attributed to (the
+`X-Tolvyn-Agent` header, or else the agent bound to the API key), and `agent_name`, the raw
+header as sent. Budgets, the kill switch and the Agents page use `agent_id`. View them:
 
-- **Dashboard:** Request log → click any row → detail panel shows `agent_name`
-- **CLI:** `tolvyn requests --limit 5 --json | jq '.data[] | {agent: .agent_name, cost: .cost_usd}'`
-- **API:** `GET /v1/usage/requests` — each row has `agent_name`
+- **Dashboard:** **Agents** shows requests, share and cost per agent over 7, 30 or 90 days. Requests
+  with no agent appear as `(unattributed)`, and those whose agent was cleared when they passed your
+  plan's data-retention window appear as `(redacted)`. The **Requests** list has an Agent column
+  (`agent_id`); click a row and the detail panel shows `agent_name` if the header was sent
+- **CLI:** `tolvyn requests --limit 5 --json | jq '.data[] | {agent: .agent_id, cost: .cost_usd}'`
+- **API:** `GET /v1/usage/by-agent` for cost per agent; `GET /v1/usage/requests` rows carry
+  `agent_id` (omitted when there is none); `GET /v1/usage/requests/{id}` carries `agent_name`
 
 ---
 
