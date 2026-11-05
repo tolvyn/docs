@@ -89,6 +89,27 @@ Requests can be tagged with attribution headers, used for budget scoping, usage 
 | `X-Tolvyn-User` | End user within your app |
 | `X-Tolvyn-End-Customer` | Your customer (for SaaS cost pass-through) |
 
+### What an API key can fix
+
+Binding is per dimension. When you create an API key you can bind any of **agent**, **team** and **service**, and each one is decided separately:
+
+- **Bound:** the key decides. A header with a different value is ignored, the request is flagged `attribution_conflict`, and your team is alerted. The request still goes through.
+- **Not bound:** the header decides.
+
+**Feature, end customer and user cannot be bound.** They always come from the header.
+
+For example, the key `support-prod` is bound to team `Support` and service `support-api`:
+
+| Request sends | Recorded as | Flagged |
+|---|---|---|
+| `X-Tolvyn-Agent: triage-bot` | agent `triage-bot` | No: agent is not bound on this key |
+| `X-Tolvyn-Feature: ticket-summary` | feature `ticket-summary` | No |
+| `X-Tolvyn-End-Customer: acme` | end customer `acme` | No |
+| `X-Tolvyn-Team: Support` | team `Support` | No: it matches |
+| `X-Tolvyn-Team: Marketing` | team `Support` | **Yes: the header is ignored** |
+
+Cost, budgets and kill switches all use the recorded values, so a header cannot move a bound key's traffic away from its budget or its kill switch. A key's bindings are set when it is created. To attribute traffic differently, create another key.
+
 ---
 
 ## 6. Fail-open behavior

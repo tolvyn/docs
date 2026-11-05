@@ -90,17 +90,18 @@ The map holds **which model is an acceptable substitute for which** — a judgem
 
 | Model in use | Suggested substitute |
 |---|---|
-| `gpt-4o` | `gpt-4o-mini` |
-| `gpt-4-turbo` | `gpt-4o-mini` |
-| `gpt-4` | `gpt-4o-mini` |
+| `gpt-4o` | `gpt-6-luna` |
+| `gpt-4-turbo` | `gpt-5.6-sol` |
+| `gpt-4` | `gpt-5.6-sol` |
 | `claude-3-5-sonnet` | `claude-haiku-4-5` |
 | `claude-sonnet-4-6` | `claude-haiku-4-5` |
 | `claude-3-opus` | `claude-haiku-4-5` |
 | `claude-3-sonnet` | `claude-haiku-4-5` |
 | `claude-opus-4-6` | `claude-sonnet-4-6` |
 | `claude-opus-4-7` | `claude-sonnet-4-6` |
-| `o1` | `o3-mini` |
-| `o1-pro` | `o1-mini` |
+| `o1` | `gpt-5.6-sol` |
+
+**For OpenAI models the suggestion is only the replacement OpenAI names on its [deprecations page](https://developers.openai.com/api/docs/deprecations).** Where that page names no replacement for a model, this rule stays silent. That is why `o1-pro` is absent: its replacement requires a mode this estimate does not price.
 
 **There is no Gemini substitution, and that is deliberate.** `gemini-2.5-flash` and `gemini-2.0-flash` have both been retired by Google and now return 404, and the Gemini models still being served are not cheaper than `gemini-2.5-pro` on *both* input and output — so there is no move TOLVYN could recommend that would reliably save you anything. We would rather say nothing than suggest a migration worth nothing. (Checked against the live Gemini API on 2026-09-27; a substitution will be added when one is worth making.)
 
@@ -128,7 +129,7 @@ The rates are quoted in the finding so you can check the arithmetic against the 
 | Duplicate percentage | ≥ 5.0% of total requests |
 | `request_hash` must be non-NULL | Required |
 
-The `request_hash` column is populated by the proxy with a normalized hash of the request body (system prompt + messages + model + key parameters). A "duplicate" is two or more requests with the same hash.
+**This rule does not fire today, and it is being replaced.** `request_hash` holds no hash of the request body: it is built from the tenant, provider, model and time, so two identical prompts never match. TOLVYN stores no fingerprint of your prompts. As originally designed: A "duplicate" is two or more requests with the same hash.
 
 **Savings estimate:** the full cost of every redundant request beyond the first per hash (`SUM(cost_microdollars)` of all but one duplicate per hash group).
 

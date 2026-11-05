@@ -132,7 +132,7 @@ Verification proves two things and only two: that these records form an unbroken
 
 **The signature attests that TOLVYN observed and charged this. It does not attest that the attribution fields were independently verified.**
 
-Specifically, `agent_id` and `hierarchy_path` (which carries team and service) can be set by the calling client per request, using the `X-Tolvyn-Agent`, `X-Tolvyn-Team` and `X-Tolvyn-Service` headers. Where a header is sent it overrides the value bound to the API key. TOLVYN records what it resolved, meters against it, and signs that — so these fields are the customer's own labelling of the customer's own traffic.
+Specifically, `agent_id` and `hierarchy_path` (which carries team and service) can be set by the calling client per request, using the `X-Tolvyn-Agent`, `X-Tolvyn-Team` and `X-Tolvyn-Service` headers. A header sets a dimension only when the API key has no value bound for it. Where the key has a binding, the binding wins: a different header is ignored, the request is flagged `attribution_conflict`, and the tenant is alerted. Requests from before this rule took effect were resolved with the header first. TOLVYN records what it resolved, meters against it, and signs that — so on a key with no binding these fields are the customer's own labelling of the customer's own traffic.
 
 That makes them reliable for what they are for: **allocating cost between teams, services and agents inside one organisation**, with an integrity guarantee that the labels were not altered after the fact. It does **not** make them proof of origin against a party who might benefit from mislabelling, because the party sending the header and the party being attributed are the same organisation.
 

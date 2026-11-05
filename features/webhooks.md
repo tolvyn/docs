@@ -88,6 +88,7 @@ Four real event types plus one synthetic test event:
 | `alert.cost_anomaly` | Single request costs ≥10× recent service average |
 | `alert.model_change` | Service switches model family with ≥2× cost change |
 | `alert.pricing_change` | A provider's published price for a model the tenant uses changes |
+| `alert.attribution_conflict` | A request's `X-Tolvyn-Agent`, `-Team` or `-Service` header disagrees with its API key's binding. The header was ignored. At most once an hour per key and dimension |
 | `alert.all` | Wildcard subscription — receives all of the above |
 | `webhook.test` | Sent by `POST /v1/webhooks/{id}/test` only — not a real alert |
 
@@ -416,7 +417,7 @@ Plan rotation as a deliberate operation; an event in flight when you delete the 
 | Active endpoints per tenant | 10 |
 | Max attempts per delivery | 5 |
 | Delivery timeout | 5 seconds |
-| Event types currently supported | 4 (`alert.budget_threshold`, `alert.cost_anomaly`, `alert.model_change`, `alert.pricing_change`) |
+| Event types currently supported | 5 (`alert.budget_threshold`, `alert.cost_anomaly`, `alert.model_change`, `alert.pricing_change`, `alert.attribution_conflict`) |
 
 ---
 
