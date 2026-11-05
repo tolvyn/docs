@@ -118,7 +118,9 @@ Budget/enforcement checks are themselves fail-open: a TOLVYN-side error never bl
 - **No response storage** — provider responses stream through and are not retained.
 - **No model hosting** — TOLVYN is a proxy and control plane, not a model provider.
 - **No content filtering** — TOLVYN does not inspect or modify prompt/completion content.
-- **No PII processing** — attribution tags are metadata only.
+- **Attribution tags are stored as you send them** — if a user, end-customer, service or agent value
+  is personal data, TOLVYN stores it as such. Send neutral identifiers where you can; see
+  [End customers](../features/end-customers.md) for how to avoid sending personal data.
 
 ---
 
