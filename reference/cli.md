@@ -194,13 +194,13 @@ List recent proxied requests.
 | `--limit <n>` | `20` | Rows to return (max 100) |
 
 ```bash
-tolvyn requests --model gpt-4o --limit 5
+tolvyn requests --model gpt-6-luna --limit 5
 ```
 
 ```
 TIME              | TEAM/SERVICE     | MODEL          |  TOKENS |     COST | LATENCY
-2026-05-17 15:48  | backend/summari… | gpt-4o         |     210 |  $0.0084 |   412ms
-2026-05-17 15:47  | backend/summari… | gpt-4o         |     185 |  $0.0073 |   389ms
+2026-05-17 15:48  | backend/summari… | gpt-6-luna     |     210 |  $0.0084 |   412ms
+2026-05-17 15:47  | backend/summari… | gpt-6-luna     |     185 |  $0.0073 |   389ms
 ...
 ```
 

@@ -226,13 +226,7 @@ Each model file declares the canonical name, family, modality, context window, a
 
 ### How to contribute
 
-1. Fork the repo
-2. Edit the relevant `<provider>/<model>.json` file with the new price + source URL
-3. Open a PR with a link to the provider's pricing announcement
-
-Maintainers review, run automated sanity checks, and merge. The downstream `pricing_candidates` table can be re-populated from the repo by an operator.
-
-This is how TOLVYN keeps pricing accurate at internet speed — through community contributions, validated by source URLs that anyone can audit.
+This repository is published from TOLVYN's catalogue, so corrections do not come by pull request. If a price is wrong or a model is missing, open an issue on the repository or email founder@tolvyn.io, with the model ID and a link to the provider's pricing page. We fix the catalogue, and the next daily sync publishes it.
 
 ---
 
