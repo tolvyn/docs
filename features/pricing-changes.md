@@ -21,23 +21,25 @@ Pricing Changes is the answer to the second case.
 
 ### A. Automated scraper
 
-A background goroutine runs once per day at **02:30 UTC**. It reads each provider's public pricing page, parses for known model identifiers, and compares against the prices currently in the `models` table.
+A background job runs once per day at **02:30 UTC**. It reads the public [LiteLLM pricing feed](https://github.com/BerriAI/litellm), not the providers' own pages, keeps each provider's first-party entries, and compares them against the prices currently in the `models` table.
 
-When a price differs, a row is inserted into `pricing_candidates` with `status = 'pending'`:
+When a price differs, or a model appears or leaves the feed, a row is inserted into `pricing_candidates` with `status = 'pending'`:
 
 | Column | Value |
 |---|---|
-| `provider` | `openai` / `anthropic` / `google` |
-| `model_id` | The provider's official model ID |
-| `field_changed` | `input`, `output`, `cached`, or `context_window` |
-| `detected_value` | What the scraper found |
+| `provider` | `openai` / `anthropic` / `google` / `deepseek` |
+| `model_id` | The model ID as the feed lists it |
+| `field_changed` | `input`, `output`, `cached`, cache-write and long-context rates, or a new or retired model |
+| `detected_value` | What the feed says |
 | `current_value` | What TOLVYN currently has |
-| `source_url` | The URL the scraper read |
+| `source_url` | The feed's URL |
 | `status` | `pending` until operator review |
 
 Candidates never auto-apply. Operator review is mandatory.
 
 The scraper can also be triggered on-demand via `POST /v1/operator/scraper/run`.
+
+**DeepSeek** is covered the same way for its base prices, from the feed's first-party DeepSeek entries. Its time-based off-peak rates are different: the feed proposes one value per field, so they are held as separate pricing modifiers, set by an operator and not detected by this job.
 
 ### B. Operator manual entry
 
@@ -70,7 +72,7 @@ This repo serves two purposes:
 - **Reference data for self-hosted TOLVYN deployments.** You can sync the repo into your own `models` table and pricing_history.
 - **External validation.** Anyone can compare TOLVYN's prices against the public record in the repo.
 
-The repo is the source of truth that the operator dashboard and the automated scraper both feed into. Pull requests with new models or detected price changes go through community review before being merged.
+The repo is published from TOLVYN's public model catalogue by a daily sync at 04:00 UTC, so it follows prices the operator has approved. The scraper does not read it.
 
 ---
 
@@ -220,17 +222,11 @@ tolvyn-models/
 └── README.md
 ```
 
-Each model file declares the canonical name, family, modality, context window, and current prices with source URL. The repo is the human-curated source of truth.
+Each model file declares the canonical name, family, modality, context window, and current prices. The live `models` table is the source of truth; this repo is its published copy.
 
 ### How to contribute
 
-1. Fork the repo
-2. Edit the relevant `<provider>/<model>.json` file with the new price + source URL
-3. Open a PR with a link to the provider's pricing announcement
-
-Maintainers review, run automated sanity checks, and merge. The downstream `pricing_candidates` table can be re-populated from the repo by an operator.
-
-This is how TOLVYN keeps pricing accurate at internet speed — through community contributions, validated by source URLs that anyone can audit.
+This repository is published from TOLVYN's catalogue, so corrections do not come by pull request. If a price is wrong or a model is missing, open an issue on the repository or email founder@tolvyn.io, with the model ID and a link to the provider's pricing page. We fix the catalogue, and the next daily sync publishes it.
 
 ---
 

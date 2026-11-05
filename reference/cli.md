@@ -194,13 +194,13 @@ List recent proxied requests.
 | `--limit <n>` | `20` | Rows to return (max 100) |
 
 ```bash
-tolvyn requests --model gpt-4o --limit 5
+tolvyn requests --model gpt-6-luna --limit 5
 ```
 
 ```
 TIME              | TEAM/SERVICE     | MODEL          |  TOKENS |     COST | LATENCY
-2026-05-17 15:48  | backend/summari… | gpt-4o         |     210 |  $0.0084 |   412ms
-2026-05-17 15:47  | backend/summari… | gpt-4o         |     185 |  $0.0073 |   389ms
+2026-05-17 15:48  | backend/summari… | gpt-6-luna     |     210 |  $0.0084 |   412ms
+2026-05-17 15:47  | backend/summari… | gpt-6-luna     |     185 |  $0.0073 |   389ms
 ...
 ```
 
@@ -681,7 +681,7 @@ tolvyn ledger verify || { echo "Ledger broken — investigate"; exit 1; }
 
 #### `tolvyn ledger export`
 
-Stream the full ledger as CSV — includes `record_hash`, `previous_hash`, and `hmac_signature` so the export can be verified offline. The audit-evidence flow is: export, hand the CSV to the auditor, auditor verifies the hash chain independently. **Never share the signing secret with an auditor** — they do not need it (the `record_hash` chain is keyed on nothing and re-derives from each record's own fields), there is one secret per deployment, and anyone holding it could mint a valid signature for any record of any tenant. See [Ledger](../features/ledger.md) for the canonical form an independent verifier must reproduce.
+Stream the ledger as CSV, including `record_hash`, `previous_hash` and `hmac_signature`. It shows how the records link, but it does not carry every hashed field, so a record's hash cannot be re-derived from it. For independent proof, use an [evidence package](../features/evidence-packages.md) (Scale and Enterprise). **Never share the signing secret with an auditor:** no check needs it, there is one secret per deployment, and anyone holding it could mint a valid signature for any record of any tenant.
 
 | Flag | Default | Description |
 |---|---|---|
