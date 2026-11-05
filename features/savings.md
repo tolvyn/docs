@@ -109,9 +109,9 @@ If the model you use most has no substitute listed, it produces no downgrade fin
 Example finding text:
 
 ```
-100% of backend calls to claude-3-opus in this period used fewer than 500
+100% of backend calls to claude-sonnet-4-6 in this period used fewer than 500
 tokens (avg 184 tokens). claude-haiku-4-5 would cost ~$12.40 instead of
-~$49.60 — saving ~$37.20, at claude-haiku-4-5's current rate of $1/$5 per
+~$37.20 — saving ~$24.80, at claude-haiku-4-5's current rate of $1/$5 per
 million input/output tokens.
 ```
 
@@ -194,7 +194,7 @@ Idle-model findings carry **no dollar estimate** — the previous budget-share p
 Example finding text:
 
 ```
-gpt-4o-2024-05-13 has had 0 requests in the last 30 days (last used 47 days ago,
+gpt-4o-2024-08-06 has had 0 requests in the last 30 days (last used 47 days ago,
 2104 total historical requests).
 If you have active budgets tied to services that relied on this model,
 consider removing them to reduce management overhead.

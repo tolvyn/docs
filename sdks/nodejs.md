@@ -46,7 +46,7 @@ const client = new OpenAI({
 });
 
 const response = await client.chat.completions.create({
-  model: 'gpt-4o-mini',
+  model: 'gpt-6-luna',
   messages: [{ role: 'user', content: 'Hello' }],
 });
 console.log(response.choices[0].message.content);
@@ -69,7 +69,7 @@ const client = new OpenAI({
 });
 
 const response = await client.chat.completions.create({
-  model: 'gpt-4o-mini',
+  model: 'gpt-6-luna',
   messages: [{ role: 'user', content: 'Hello' }],
 });
 ```
@@ -179,25 +179,25 @@ As of v1.0.6, the class is named `Google` in source (was `TolvynGoogle` internal
 
 ## DeepSeek (OpenAI-compatible)
 
-DeepSeek's API is OpenAI-compatible, so there is **no `DeepSeek` client** — use the `OpenAI` client with `proxyUrl` pointed at the DeepSeek proxy path and `model: "deepseek-chat"`.
+Use the `DeepSeek` client. DeepSeek's API is OpenAI-compatible, so it is used exactly like `OpenAI`, and it already points at TOLVYN's DeepSeek proxy path.
 
 ```javascript
-import { OpenAI } from 'tolvyn'
+import { DeepSeek } from 'tolvyn'
 
-const client = new OpenAI({
+const client = new DeepSeek({
   tolvynApiKey: 'tlv_live_...',
-  proxyUrl: 'https://proxy.tolvyn.io/v1/proxy/deepseek/',
+  deepSeekApiKey: 'sk-...',   // used only for fail-open fallback
 })
 
 const response = await client.chat.completions.create({
-  model: 'deepseek-chat',
+  model: 'deepseek-flash',
   messages: [{ role: 'user', content: 'Hello' }],
 })
 console.log(response.choices[0].message.content)
 ```
 
-- Add your DeepSeek provider key in the **dashboard** (**Providers** → DeepSeek, at `/providers`). Your SDK only ever holds the TOLVYN key; TOLVYN swaps in the DeepSeek key when forwarding.
-- **Served model:** DeepSeek resolves `deepseek-chat` to a concrete served model server-side, so usage may show as e.g. `deepseek-v4-flash` in the dashboard — it is **billed at the `deepseek-chat` rate** (expected, correctly priced).
+- Add your DeepSeek provider key in the **dashboard** (**Providers** → DeepSeek, at `/providers`); TOLVYN uses it when forwarding. `deepSeekApiKey` is only for fail-open, which goes straight to DeepSeek. Don't point the `OpenAI` client at the DeepSeek path: its fallback goes to OpenAI.
+- **Served model:** DeepSeek may answer as a different model name than the one you sent (for example `deepseek-v4-flash`); usage shows the name DeepSeek reports, at that model's rate. The older names `deepseek-chat` and `deepseek-reasoner` still work.
 
 ---
 
@@ -348,7 +348,7 @@ const opts: TolvynOpenAIOptions = {
 const client = new OpenAI(opts);
 
 const resp = await client.chat.completions.create({
-  model: 'gpt-4o-mini',
+  model: 'gpt-6-luna',
   messages: [{ role: 'user', content: 'Hello' }],
 });
 

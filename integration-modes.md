@@ -41,7 +41,7 @@ client = OpenAI(
 
 # Everything else is identical
 response = client.chat.completions.create(
-    model="gpt-4o-mini",
+    model="gpt-6-luna",
     messages=[{"role": "user", "content": "Hello"}]
 )
 ```
@@ -64,7 +64,7 @@ const client = new OpenAI({
 
 // Everything else is identical
 const response = await client.chat.completions.create({
-  model: 'gpt-4o-mini',
+  model: 'gpt-6-luna',
   messages: [{ role: 'user', content: 'Hello' }]
 })
 ```
@@ -85,34 +85,28 @@ This means that in SDK mode a TOLVYN outage does not have to take your applicati
 
 ## DeepSeek (OpenAI-compatible)
 
-DeepSeek's API is OpenAI-compatible, so **there is no separate DeepSeek client** — you use the **OpenAI client** pointed at TOLVYN's DeepSeek proxy path, with `model: "deepseek-chat"`.
+DeepSeek's API is OpenAI-compatible: the SDKs' `DeepSeek` client is used exactly like the OpenAI one and already points at TOLVYN's DeepSeek proxy path.
 
-**SDK mode** — override the proxy URL on the OpenAI client:
+**SDK mode** — use the `DeepSeek` client, whose fail-open fallback goes to DeepSeek (an `OpenAI` client pointed at this path would fall back to OpenAI):
 
 ```python
 # Python
-from tolvyn import OpenAI
+from tolvyn import DeepSeek
 
-client = OpenAI(
-    tolvyn_api_key="tlv_live_...",
-    proxy_url="https://proxy.tolvyn.io/v1/proxy/deepseek/",
-)
+client = DeepSeek(tolvyn_api_key="tlv_live_...")
 resp = client.chat.completions.create(
-    model="deepseek-chat",
+    model="deepseek-flash",
     messages=[{"role": "user", "content": "Hello"}],
 )
 ```
 
 ```javascript
 // Node.js
-import { OpenAI } from 'tolvyn'
+import { DeepSeek } from 'tolvyn'
 
-const client = new OpenAI({
-  tolvynApiKey: 'tlv_live_...',
-  proxyUrl: 'https://proxy.tolvyn.io/v1/proxy/deepseek/',
-})
+const client = new DeepSeek({ tolvynApiKey: 'tlv_live_...' })
 const resp = await client.chat.completions.create({
-  model: 'deepseek-chat',
+  model: 'deepseek-flash',
   messages: [{ role: 'user', content: 'Hello' }],
 })
 ```
@@ -121,7 +115,7 @@ const resp = await client.chat.completions.create({
 
 **Add your DeepSeek key in the dashboard** (**Providers** → DeepSeek, at `/providers`). TOLVYN swaps it in when forwarding; your SDK only ever holds the TOLVYN key.
 
-> **Served-model note:** DeepSeek resolves `deepseek-chat` to a concrete served model server-side, so usage may show as e.g. `deepseek-v4-flash` in the dashboard. It is **billed at the `deepseek-chat` rate** — the served alias is expected and correctly priced.
+> **Served-model note:** DeepSeek may answer as a different model name than the one you sent (for example `deepseek-v4-flash`); usage shows the name DeepSeek reports, at that model's rate. The older names `deepseek-chat` and `deepseek-reasoner` still work.
 
 See the per-SDK pages for the full DeepSeek recipe, including Go: [Python](./sdks/python.md) · [Node.js](./sdks/nodejs.md) · [Go](./sdks/go.md).
 
@@ -148,7 +142,7 @@ client = OpenAI(
 )
 
 response = client.chat.completions.create(
-    model="gpt-4o-mini",
+    model="gpt-6-luna",
     messages=[{"role": "user", "content": "Hello"}],
     extra_headers={
         "X-Tolvyn-Team": "engineering",
@@ -166,7 +160,7 @@ curl https://proxy.tolvyn.io/v1/proxy/openai/v1/chat/completions \
   -H "X-Tolvyn-Team: engineering" \
   -H "X-Tolvyn-Service: chatbot-api" \
   -d '{
-    "model": "gpt-4o-mini",
+    "model": "gpt-6-luna",
     "messages": [{"role": "user", "content": "Hello"}]
   }'
 ```
@@ -180,7 +174,7 @@ Content-Type: application/json
 X-Tolvyn-Team: engineering
 X-Tolvyn-Service: chatbot-api
 
-{"model":"gpt-4o-mini","messages":[{"role":"user","content":"Hello"}]}
+{"model":"gpt-6-luna","messages":[{"role":"user","content":"Hello"}]}
 ```
 
 ### Important: TOLVYN is in your critical path

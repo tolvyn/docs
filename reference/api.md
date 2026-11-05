@@ -809,7 +809,8 @@ Priced models with their current rates. Optional `?provider=` filters by provide
 omitted when not set, so treat all four as optional. `model_family` in particular is
 absent for most rows.
 
-`deprecated_at` is an RFC 3339 timestamp and appears **only on models we have retired**:
+Models we have retired are **left out by default**. Add `?include_deprecated=true` to
+include them; on those rows `deprecated_at` is an RFC 3339 timestamp:
 
 ```json
 { "model_id": "gpt-4-0125-preview", "provider": "openai",
@@ -818,11 +819,11 @@ absent for most rows.
   "deprecated_at": "2026-10-05T09:12:44Z" }
 ```
 
-**This list is not filtered by `deprecated_at`, and retiring a model does not block
-requests for it.** Retired models stay in the response so that tools filtering
-historical usage can still name a model you used and paid for. If your code picks a
-model to call from this list, skip entries that carry `deprecated_at` — a retired
-model will usually be rejected by the upstream provider.
+**Retiring a model does not block requests for it**, and usage you already paid for
+keeps its model name. Use `?include_deprecated=true` when a tool needs to name a
+retired model from your historical usage. Without it, the list holds only models
+TOLVYN still offers; a retired model will usually be rejected by the upstream
+provider.
 
 ### `GET /v1/models/changes`
 
@@ -1068,7 +1069,7 @@ Proxies everything matching the OpenAI API surface. Authentication is `Authoriza
 curl https://proxy.tolvyn.io/v1/proxy/openai/v1/chat/completions \
   -H "Authorization: Bearer tlv_live_..." \
   -H "Content-Type: application/json" \
-  -d '{"model":"gpt-4o-mini","messages":[{"role":"user","content":"Hello"}]}'
+  -d '{"model":"gpt-6-luna","messages":[{"role":"user","content":"Hello"}]}'
 ```
 
 ### `/v1/proxy/anthropic/*`
@@ -1087,16 +1088,16 @@ Same pattern. The TOLVYN API key may be passed as `Authorization: Bearer` or `x-
 
 ### `/v1/proxy/deepseek/*`
 
-DeepSeek is OpenAI-compatible — call it on this path with the OpenAI request shape and `model: "deepseek-chat"`. Authentication is `Authorization: Bearer tlv_live_...` (or `x-api-key`).
+DeepSeek is OpenAI-compatible — call it on this path with the OpenAI request shape and `model: "deepseek-flash"`. Authentication is `Authorization: Bearer tlv_live_...` (or `x-api-key`).
 
 ```bash
 curl https://proxy.tolvyn.io/v1/proxy/deepseek/chat/completions \
   -H "Authorization: Bearer tlv_live_..." \
   -H "Content-Type: application/json" \
-  -d '{"model":"deepseek-chat","messages":[{"role":"user","content":"Hello"}]}'
+  -d '{"model":"deepseek-flash","messages":[{"role":"user","content":"Hello"}]}'
 ```
 
-DeepSeek resolves `deepseek-chat` to a concrete served model, so usage may show as e.g. `deepseek-v4-flash` — it is billed at the `deepseek-chat` rate.
+DeepSeek may answer as a different model name than the one you sent (for example `deepseek-v4-flash`); usage shows the name DeepSeek reports, at that model's rate. The older names `deepseek-chat` and `deepseek-reasoner` still work.
 
 ### Proxy-specific status codes
 
