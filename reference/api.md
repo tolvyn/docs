@@ -577,7 +577,7 @@ response always reconcile.
 
 ### `GET /v1/usage/requests`
 
-Paginated request log. Accepts `?limit`, `?offset`, `?status`. Returns `?format=csv` as a streaming CSV download.
+Paginated request log. Accepts `?limit`, `?offset`, `?status`. Returns `?format=csv` as a streaming CSV download; a [read-only member](../features/roles.md) gets `403` `csv_export_restricted` unless an admin has allowed it.
 
 ```json
 {
@@ -697,7 +697,7 @@ JWT-required. Paginated audit log with optional `?actor_type=`, `?action=`, `?fr
 
 ### `GET /v1/ledger`
 
-JWT-required. Paginated hash-chained audit ledger of every proxied request. Accepts `?from=`, `?to=`, and `?format=csv` for full export.
+JWT-required. Paginated hash-chained audit ledger of every proxied request. Accepts `?limit=0` for the total alone, with no rows; `?from=`, `?to=`, and `?format=csv` (a [read-only member](../features/roles.md) gets `403` `csv_export_restricted` unless an admin has allowed it) for full export.
 
 ```json
 {

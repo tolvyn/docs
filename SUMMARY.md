@@ -26,6 +26,7 @@
 * [Metering Accuracy](features/metering-accuracy.md)
 * [Savings Dashboard](features/savings.md)
 * [Team Insights](features/team-insights.md)
+* [Member Roles](features/roles.md)
 * [End Customers](features/end-customers.md)
 * [Agent Budgets](features/agents.md)
 * [Pricing Changes](features/pricing-changes.md)

@@ -4,7 +4,7 @@ An evidence package is a signed, self-contained ZIP that lets an auditor verify 
 
 The [Tamper-Evident Ledger](ledger.md) makes your spend tamper-evident inside TOLVYN. An evidence package is how you hand that property to someone else.
 
-Available on **Scale** and **Enterprise**.
+Available on **Scale** and **Enterprise**. Downloading a package needs the [admin or owner role](roles.md); any other role gets `403`.
 
 ---
 

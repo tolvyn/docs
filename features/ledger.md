@@ -202,7 +202,7 @@ Anything other than `valid: true` means the chain has been compromised at or aft
 
 ## Exporting the ledger
 
-`GET /v1/ledger?format=csv` streams the columns below to a CSV file. CSV export requires Starter or higher.
+`GET /v1/ledger?format=csv` streams the columns below to a CSV file. CSV export requires Starter or higher. A [read-only member](roles.md) can export only where an admin has turned on "Read-only members can export CSV"; otherwise it answers `403`.
 
 ```bash
 curl "https://api.tolvyn.io/v1/ledger?format=csv&from=2026-05-01T00:00:00Z&to=2026-06-01T00:00:00Z" \
