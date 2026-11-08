@@ -1118,10 +1118,11 @@ DeepSeek may answer as a different model name than the one you sent (for example
 
 | Status | Meaning |
 |---|---|
-| `401 invalid_token` | TOLVYN key invalid, revoked, or missing |
+| `401 missing_auth` | No TOLVYN key was sent |
+| `401 invalid_key` | The TOLVYN key is invalid or revoked |
+| `409 provider_credentials_missing` | No provider key is configured for the requested provider. Add one on the **Providers** page, then send the request again |
 | `429 budget_exceeded` | A hard budget would be exceeded by this request |
-| `451 killed` | A kill switch is active for the request's scope |
-| `502 provider_key_missing` | No provider key configured for the requested provider |
+| `451 kill_switch_active` | A kill switch is active for the request's scope |
 | `503 Service Unavailable` | Proxy unreachable — SDK fail-open path triggers on this |
 
 All other responses pass through from the provider unchanged.
