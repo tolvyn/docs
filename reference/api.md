@@ -586,7 +586,9 @@ Paginated request log. Accepts `?limit`, `?offset`, `?status`. Returns `?format=
       "id": "...",
       "created_at": "2026-05-17T15:48:00Z",
       "provider": "openai",
-      "model_id": "gpt-4o",
+      "model_id": "gpt-4o-2024-08-06",
+      "requested_model": "gpt-4o",
+      "model_substituted": false,
       "tokens_input": 120,
       "tokens_output": 35,
       "cost_microdollars": 8400,
@@ -602,6 +604,16 @@ Paginated request log. Accepts `?limit`, `?offset`, `?status`. Returns `?format=
   "offset": 0
 }
 ```
+
+**`model_id` is the model the provider served, and what the request was billed at.** `requested_model` is the model your
+request asked for. `model_substituted` is `true` when the provider served a different model from the one requested,
+`false` when it served the same model (an alias resolving to its dated version, such as `gpt-4o` to `gpt-4o-2024-08-06`,
+is the same model), and `null` when either side is unknown, including on requests recorded before this field existed.
+The CSV export carries both as its last two columns, `requested_model` and `model_substituted`.
+
+**`cost_microdollars` is `null`, and `cost_usd` is `"unpriced"`, when TOLVYN could not read the price for a request.**
+The request was served and nothing was billed for it. It is never shown as $0. Every export of request rows writes an
+entry in your audit log, with who exported, the filters used and the number of rows.
 
 ### `GET /v1/usage/by-model`
 
@@ -633,7 +645,10 @@ Detail view for one end customer.
 
 ### `GET /v1/usage/requests/{id}`
 
-Single request with full metadata, ledger linkage, and tag map.
+Single request with full metadata, ledger linkage, and tag map. It carries `requested_model` and `model_substituted` as
+above, and `requested_tier` and `served_tier`: the processing tier your request asked for and the tier the provider
+reported serving. `served_tier` comes only from the provider's response, never from your request, and it is the tier the
+request was billed at; it is `null` when the provider reported none.
 
 ### `GET /v1/usage/timeseries`
 
