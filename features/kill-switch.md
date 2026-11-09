@@ -25,9 +25,9 @@ Use it for incident response: a runaway agent, a leaked API key, a service in a 
 | Scope | Matches when |
 |---|---|
 | `all` | Any request from this tenant — global kill |
-| `team` | Request's team ID equals `scope_value` |
-| `service` | Request's `X-Tolvyn-Service` equals `scope_value` |
-| `agent` | Request's `X-Tolvyn-Agent` equals `scope_value` |
+| `team` | The request's team is the stored team. Arm it with the team's name (any case) or its id: the id is what is stored, listed, returned in the 451 and matched, so the kill survives a rename. A name no team has is refused with `400 team_not_found`; a name two teams share, with `409 ambiguous_team_name` (use the id from `GET /v1/teams`) |
+| `service` | The service the proxy settled on for the request equals `scope_value`, exactly (case counts): the API key's bound service when it has one, or else the `X-Tolvyn-Service` header. On a bound key a different header is ignored, so it cannot step around the kill |
+| `agent` | The agent the proxy settled on for the request equals `scope_value`, exactly (case counts): the API key's bound agent when it has one, or else the `X-Tolvyn-Agent` header. On a bound key a different header is ignored |
 | `api_key` | Request's TOLVYN API key prefix (first 12 chars) equals `scope_value` |
 
 
@@ -81,12 +81,12 @@ When the kill matches, the proxy returns:
   "message": "<reason or 'Kill switch active'>",
   "kill_id": "a1b2c3d4-5e6f-7a8b-9c0d-1e2f3a4b5c6d",
   "scope_type": "team",
-  "scope_value": "backend",
+  "scope_value": "3f6b2c1e-8d4a-4b7f-9e21-5a0c7d9e4f13",
   "activated_at": "2026-05-17T15:55:00Z"
 }
 ```
 
-Status: `451 Unavailable For Legal Reasons`.
+Status: `451 Unavailable For Legal Reasons`. For a team kill, `scope_value` is the team's id.
 
 ---
 
@@ -157,11 +157,13 @@ The CLI prompts for confirmation before activating. Output:
 Kill team "backend"? This will immediately block all AI requests. [y/N]: y
 ✓ Kill switch activated. All matching AI requests are now blocked.
   ID:    a1b2c3d4-5e6f-7a8b-9c0d-1e2f3a4b5c6d
-  Scope: team / backend
+  Scope: team / 3f6b2c1e-8d4a-4b7f-9e21-5a0c7d9e4f13
   Reason: runaway agent
 
-To undo: tolvyn kill undo a1b2c3d4-...
+To undo: tolvyn kill undo a1b2c3d4-5e6f-7a8b-9c0d-1e2f3a4b5c6d
 ```
+
+The scope line shows the team's id: the name you typed was looked up and the id is what was armed.
 
 ### API
 
@@ -190,12 +192,14 @@ Response (201 Created):
 {
   "id": "a1b2c3d4-5e6f-7a8b-9c0d-1e2f3a4b5c6d",
   "scope_type": "team",
-  "scope_value": "backend",
+  "scope_value": "3f6b2c1e-8d4a-4b7f-9e21-5a0c7d9e4f13",
   "reason": "runaway agent loop",
   "activated_by": "9f8d6a4e-2c33-4b1e-a3f0-21d8f2c4b5c1",
   "activated_at": "2026-05-17T15:55:00Z"
 }
 ```
+
+For a team, `scope_value` in the response is the team's id, whichever form you sent.
 
 Tenants are capped at **10 active kill switches** at any time. Attempting an 11th returns `400 limit_exceeded`.
 
@@ -212,11 +216,13 @@ tolvyn kill list
 Aliases: `tolvyn kill ls`.
 
 ```
-ID         SCOPE    TARGET     REASON                 ACTIVATED
-a1b2c3d…   team     backend    runaway agent loop     2026-05-17 15:55
+ID         SCOPE    TARGET                                 REASON                 ACTIVATED
+a1b2c3d4…  team     3f6b2c1e-8d4a-4b7f-9e21-5a0c7d9e4f13   runaway agent loop     2026-05-17 15:55
 
 1 active kill switch(es)
 ```
+
+The table shortens each id to its first 8 characters. `tolvyn kill undo` needs the full id: get it with `tolvyn kill list --json`.
 
 ### API
 
@@ -224,7 +230,7 @@ a1b2c3d…   team     backend    runaway agent loop     2026-05-17 15:55
 curl https://api.tolvyn.io/v1/kill -H "Authorization: Bearer <jwt>"
 ```
 
-Returns both active and recently-deactivated entries (filter on `deactivated_at` if you only want active ones).
+Returns the active kill switches only, newest first, as `{"kills": [...], "total": n}`. A lifted one is kept in the database for the audit trail but is not listed.
 
 ---
 
@@ -236,7 +242,7 @@ Returns both active and recently-deactivated entries (filter on `deactivated_at`
 tolvyn kill undo a1b2c3d4-5e6f-7a8b-9c0d-1e2f3a4b5c6d
 ```
 
-Aliases: `tolvyn kill deactivate`, `tolvyn kill rm`.
+Aliases: `tolvyn kill deactivate`, `tolvyn kill rm`. It takes the full id, not the 8 characters the `list` table shows: `tolvyn kill list --json` prints it.
 
 ```
 ✓ Kill switch a1b2c3d4-... deactivated. AI requests are flowing again.
@@ -249,7 +255,7 @@ curl -X DELETE https://api.tolvyn.io/v1/kill/<kill-id> \
   -H "Authorization: Bearer <jwt>"
 ```
 
-Returns `204 No Content`. The DB row is updated with `deactivated_at = now()` and `deactivated_by = <tenant id>` for audit. The row is not deleted — kill history is permanent.
+Returns `204 No Content`. An id that is not a full kill switch id is refused with `400 invalid_kill_id` and nothing is lifted; a full id that is unknown or already lifted is `404 not_found`. The DB row is updated with `deactivated_at = now()` and `deactivated_by = <tenant id>` for audit. The row is not deleted — kill history is permanent.
 
 The in-memory store is updated synchronously with the DB so subsequent requests stop receiving 451 within milliseconds.
 

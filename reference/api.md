@@ -980,13 +980,15 @@ curl -X POST https://api.tolvyn.io/v1/kill \
 
 When the kill switch is active, matching requests at the proxy receive **HTTP 451 Unavailable For Legal Reasons** without reaching the provider.
 
+For a team, `scope_value` may be the team's name (any case) or id; the id is stored and returned. A name no team has is `400 team_not_found`, a name two teams share `409 ambiguous_team_name`.
+
 ### `GET /v1/kill`
 
-Returns active and inactive kill switches.
+Returns the active kill switches only, newest first: `{"kills": [...], "total": n}`. Lifted ones are kept for the audit trail but not listed.
 
 ### `DELETE /v1/kill/{id}`
 
-Deactivates a kill switch (sets `deactivated_at`). Past activations are retained for audit. Returns `204 No Content`.
+Deactivates a kill switch (sets `deactivated_at`). Past activations are retained for audit. Returns `204 No Content`. `{id}` is the full id from `GET /v1/kill`: anything else is `400 invalid_kill_id` and nothing is lifted; an unknown or already-lifted id is `404 not_found`.
 
 ---
 

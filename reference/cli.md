@@ -419,12 +419,14 @@ tolvyn kill --scope team --target backend --reason "runaway agent loop"
 ```
 Kill team "backend"? This will immediately block all AI requests. [y/N]: y
 ✓ Kill switch activated. All matching AI requests are now blocked.
-  ID:    a1b2c3d4-...
-  Scope: team / backend
+  ID:    a1b2c3d4-5e6f-7a8b-9c0d-1e2f3a4b5c6d
+  Scope: team / 3f6b2c1e-8d4a-4b7f-9e21-5a0c7d9e4f13
   Reason: runaway agent loop
 
-To undo: tolvyn kill undo a1b2c3d4-...
+To undo: tolvyn kill undo a1b2c3d4-5e6f-7a8b-9c0d-1e2f3a4b5c6d
 ```
+
+A team is armed by its id: the scope line shows the id the name was looked up to.
 
 While active, matching proxy requests return HTTP 451.
 
@@ -435,11 +437,13 @@ tolvyn kill list
 ```
 
 ```
-ID         SCOPE    TARGET     REASON                 ACTIVATED
-a1b2c3d…   team     backend    runaway agent loop     2026-05-17 15:55
+ID         SCOPE    TARGET                                 REASON                 ACTIVATED
+a1b2c3d4…  team     3f6b2c1e-8d4a-4b7f-9e21-5a0c7d9e4f13   runaway agent loop     2026-05-17 15:55
 
 1 active kill switch(es)
 ```
+
+The table shortens each id to 8 characters. For the full id, which `undo` needs, run `tolvyn kill list --json`.
 
 #### `tolvyn kill undo <id>` (aliases `deactivate`, `rm`)
 
@@ -448,8 +452,10 @@ tolvyn kill undo a1b2c3d4-5e6f-7a8b-9c0d-1e2f3a4b5c6d
 ```
 
 ```
-✓ Kill switch a1b2c3d4-... deactivated. AI requests are flowing again.
+✓ Kill switch a1b2c3d4-5e6f-7a8b-9c0d-1e2f3a4b5c6d deactivated. AI requests are flowing again.
 ```
+
+`undo` takes the full id; the 8 characters from the `list` table are refused (`invalid_kill_id`) and nothing is lifted.
 
 ---
 

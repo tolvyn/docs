@@ -258,7 +258,7 @@ Sometimes a hard budget isn't enough — you want to stop an agent *immediately*
 tolvyn kill --scope agent --target claude-code --reason "runaway loop"
 ```
 
-While active, every request with `X-Tolvyn-Agent: claude-code` is rejected with `HTTP 451 kill_switch_active`. To re-enable:
+While active, every request attributed to `claude-code` is rejected with `HTTP 451 kill_switch_active`: a key bound to that agent, or a key with no bound agent that sends `X-Tolvyn-Agent: claude-code`. A key bound to another agent keeps its own, whatever header it sends. The match is exact, case included. To re-enable:
 
 ```bash
 tolvyn kill undo <kill-id>
