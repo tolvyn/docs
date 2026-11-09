@@ -22,6 +22,7 @@
 * [Alerts](features/alerts.md)
 * [Webhooks](features/webhooks.md)
 * [Kill Switch](features/kill-switch.md)
+* [Events](features/events.md)
 * [Reconciliation](features/reconciliation.md)
 * [Metering Accuracy](features/metering-accuracy.md)
 * [Savings Dashboard](features/savings.md)
