@@ -138,7 +138,7 @@ From `recordPayload`:
 | `provider` | `openai`, `anthropic`, `google`, `deepseek` |
 | `model_id` | Exact model used (e.g. `gpt-4o-2024-08-06`) |
 | `model_family` | Normalized family (e.g. `gpt-4o`) |
-| `modality` | `text` — the only value currently written to the ledger |
+| `modality` | What the provider reported the request carried: `text`, or the non-text modalities joined by `+` (`audio`, `audio+image`). `text` also when the provider reports no per-modality counts, which is every provider but Google. Records written before November 2026 all read `text`, whatever the request carried: they are never rewritten, and each verifies as written. |
 | `tokens_input` / `tokens_output` | Provider-reported counts |
 | `budget_status` | `ok`, `warning`, `exceeded` at request time |
 | `enforcement_action` | `allow` on every record — see the note below |
