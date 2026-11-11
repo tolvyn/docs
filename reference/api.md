@@ -1076,7 +1076,7 @@ A `heartbeat` event is emitted every 15 seconds so intermediate proxies do not c
 
 ## Proxy
 
-Proxy endpoints accept the OpenAI, Anthropic and DeepSeek APIs on the corresponding path prefix, and Google's native Gemini API. Gemini's OpenAI-compatible endpoint is not supported: see [`/v1/proxy/google/*`](#v1proxygoogle).
+Proxy endpoints accept the OpenAI, Anthropic and DeepSeek APIs on the corresponding path prefix, and Google's native Gemini API. Gemini's OpenAI-compatible endpoint is not supported: see `/v1/proxy/google/*` below.
 
 ### `/v1/proxy/openai/*`
 
