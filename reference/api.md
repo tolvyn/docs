@@ -1112,6 +1112,14 @@ curl https://proxy.tolvyn.io/v1/proxy/google/v1beta/models/gemini-3.1-flash-lite
 
 **Gemini's OpenAI-compatible endpoint is not supported.** A call to `/v1/proxy/google/v1beta/openai/...` is answered `501` with the error `endpoint_not_supported`, and nothing is sent to Google. Use the native paths above, which the Google GenAI SDKs call by default.
 
+**Gemini's Files API upload is not supported.** A call to `/v1/proxy/google/upload/...` (what `client.files.upload()` sends) is answered `501` with the error `endpoint_not_supported`, and nothing is sent to Google. Upload the file with your Google key directly to Google, then pass the file's URI in a `generateContent` request through TOLVYN:
+
+```json
+{"contents":[{"parts":[{"text":"Transcribe this."},{"file_data":{"mime_type":"audio/wav","file_uri":"https://generativelanguage.googleapis.com/v1beta/files/abc123"}}]}]}
+```
+
+That request is metered and priced like any other, audio included. A budget's check before the call counts the request body only, so it cannot see how long the referenced file is; the cost recorded afterwards is right. A small file can also be sent inline (`inline_data`) through TOLVYN: a proxy request body is limited to 10 MB, and base64 makes a file about a third larger, so about 7 MB of file.
+
 ### `/v1/proxy/deepseek/*`
 
 DeepSeek is OpenAI-compatible — call it on this path with the OpenAI request shape and `model: "deepseek-flash"`. Authentication is `Authorization: Bearer tlv_live_...` (or `x-api-key`).

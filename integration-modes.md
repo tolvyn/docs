@@ -190,7 +190,7 @@ To mitigate this:
 
 ### Google Gemini (proxy mode)
 
-Use Gemini's native API through TOLVYN: point the Google GenAI SDK, or your HTTP client, at `https://proxy.tolvyn.io/v1/proxy/google` with your TOLVYN key. Gemini's OpenAI-compatible endpoint (`/v1beta/openai/...`) is not supported through TOLVYN and is answered `501`. See [the proxy reference](reference/api.md#proxy).
+Use Gemini's native API through TOLVYN: point the Google GenAI SDK, or your HTTP client, at `https://proxy.tolvyn.io/v1/proxy/google` with your TOLVYN key. Gemini's OpenAI-compatible endpoint (`/v1beta/openai/...`) is not supported through TOLVYN and is answered `501`. So is the Files API upload (`client.files.upload()`): upload the file with your Google key directly, then pass its URI (`file_data`) in a request through TOLVYN, which is metered. See [the proxy reference](reference/api.md#proxy).
 
 ---
 
