@@ -248,12 +248,16 @@ Alias of `PUT /v1/account` for spec compatibility.
 
 All require JWT. Provider keys are AES-256-GCM encrypted server-side with a tenant-scoped DEK. Plaintext keys are never returned after creation.
 
+These endpoints are the short form of [Connections](#connections): they read and write the **default connection for every environment** of one provider. With more than one connection for a provider, use the Connections endpoints.
+
 ### `POST /v1/provider-keys`
+
+Stores the key on the provider's default connection, for every environment. If that connection exists, its key is replaced: the connection keeps its id, its version goes up by one, and it is turned back on if it was off. If the provider has exactly one connection, that one is updated. If it has none, a connection named `default` is created. If it has several and none is the default for every environment, the request is refused with `409 several_connections`: choose the connection on the Connections page, or call `PATCH /v1/connections/{id}`.
 
 | Field | Type | Required | Description |
 |---|---|---|---|
-| `provider` | string | yes | `openai`, `anthropic`, or `google` |
-| `key` | string | yes | Provider API key (`sk-...`, `sk-ant-...`, etc.) |
+| `provider` | string | yes | `openai`, `anthropic`, `google` or `deepseek` |
+| `key` | string | yes | Provider API key (`sk-...`, `sk-ant-...`, `AQ....` or `AIza...`) |
 
 ```bash
 curl -X POST https://api.tolvyn.io/v1/provider-keys \
@@ -284,7 +288,83 @@ Lists configured provider keys without revealing key material.
 
 ### `DELETE /v1/provider-keys/{id}`
 
-Revokes a provider key. Returns `204 No Content`.
+Turns the connection off (it is not deleted, so the requests it served keep saying which account paid). Returns `200` with `{"status":"deleted"}`.
+
+---
+
+## Connections
+
+All require JWT; creating and changing require the `admin` or `owner` role. A **connection** is one account on one provider: the key TOLVYN calls it with (encrypted, never returned), its name, which environment's API keys it serves by default, and whether it is on. An account can keep **several connections for one provider**, told apart by name.
+
+**Which connection serves a request.** For each provider, an API key uses:
+1. the connection it is bound to (`PUT /v1/api-keys/{id}/connections`), if any. A bound connection that is off or gone is refused, never replaced;
+2. otherwise, the default connection for the key's environment (`production`, `development` or `test`);
+3. otherwise, the default connection for every environment.
+
+Each provider has at most one active default per environment, and one for every environment.
+
+**How many.** Per provider: Free 3, Starter 10, Growth 25, Scale 50, Enterprise 50 unless we set a different number for your account. Connections that are off count; an end customer's own connections do not. At your plan's limit, creating another is refused with `402 connection_limit`. If a limit has been set for your account, reaching it is refused with `409 connection_custom_limit`: write to us with the number you need.
+
+### `GET /v1/connections`
+
+Lists every connection, without key material.
+
+```json
+[
+  {
+    "id": "5a7c1f3d-8b22-4e9f-b1c4-2a8d6e3c4f5a",
+    "provider": "openai",
+    "label": "default",
+    "owner_type": "tenant",
+    "environment": null,
+    "account_ref": null,
+    "is_default": true,
+    "status": "active",
+    "has_key": true,
+    "key_version": 2,
+    "last_rotated_at": "2026-11-11T09:00:00Z",
+    "last_used_at": "2026-11-11T09:05:00Z",
+    "verified_at": null,
+    "last_error": null,
+    "bound_keys": 0,
+    "created_at": "2026-11-09T07:35:00Z"
+  }
+]
+```
+
+`environment: null` means every environment.
+
+### `POST /v1/connections`
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `provider` | string | yes | `openai`, `anthropic`, `google`, `deepseek` or `custom` |
+| `key` | string | yes, except for a custom gateway that needs none | The provider key |
+| `label` | string | no | The name, unique per provider (default `default`). The same name twice is `409 label_exists` |
+| `environment` | string | no | `production`, `development`, `test`, or `all` (default) |
+| `is_default` | boolean | no | Make it the default for its environment (default `true`). Another active default for the same environment is `409 default_exists` |
+| `account_ref` | string | no | Your own note: which provider account this is |
+
+A custom gateway also takes `base_url` (https), `auth_mode` (`bearer`, `header` or `none`), `auth_header`, `path_prefix`, `query_params`, and either `prices_as` (`openai`, `anthropic`, `google` or `deepseek`: whose catalogue prices its models) or `unpriced_by_design: true`.
+
+```bash
+curl -X POST https://api.tolvyn.io/v1/connections \
+  -H "Authorization: Bearer <jwt>" \
+  -H "Content-Type: application/json" \
+  -d '{"provider":"openai","label":"eu-account","key":"sk-proj-...","environment":"production","is_default":false}'
+```
+
+### `PATCH /v1/connections/{id}`
+
+Changes any field above except `provider`. Sending `key` replaces the key: the connection keeps its id and its version goes up by one. Sending `"is_default": true` on an active connection makes it the default for its environment **in place of the previous one**, in one step, so the environment is never left without a default.
+
+### `POST /v1/connections/{id}/disable` and `/enable`
+
+Turn a connection off and on. A connection is never deleted. While it is off, API keys bound to it are refused for that provider.
+
+### `POST /v1/connections/{id}/verify`
+
+Calls the provider's model list with the connection's key and records the result (`verified_at`, or `last_error` with anything key-shaped removed).
 
 ---
 
@@ -338,6 +418,7 @@ All require JWT.
 | `environment` | string | no | `production` (default) or `test` — controls `tlv_live_` vs `tlv_test_` prefix |
 | `team_id` | string | no | Scope the key to a team |
 | `service_name` | string | no | Scope the key to a service |
+| `agent_id` | string | no | The agent every request made with this key is recorded under (1-100 characters). **Fixed for the key's life**: to change it, create a new key and revoke this one |
 
 ```bash
 curl -X POST https://api.tolvyn.io/v1/api-keys \
@@ -371,10 +452,25 @@ Lists keys without revealing key material.
     "environment": "production",
     "last_used_at": "2026-05-17T15:50:00Z",
     "revoked_at": null,
-    "created_at": "2026-05-17T14:00:00Z"
+    "created_at": "2026-05-17T14:00:00Z",
+    "team_id": null,
+    "agent_id": "support-bot",
+    "connection_map": {"openai": "5a7c1f3d-8b22-4e9f-b1c4-2a8d6e3c4f5a"}
   }
 ]
 ```
+
+`agent_id` is `null` for a key with no agent. `connection_map` lists the providers the key is bound to; every other provider uses the default connection for the key's environment.
+
+### `PUT /v1/api-keys/{id}/connections`
+
+Binds the key to one connection for one provider, or removes the binding.
+
+```json
+{"provider": "openai", "connection_id": "5a7c1f3d-8b22-4e9f-b1c4-2a8d6e3c4f5a"}
+```
+
+`"connection_id": null` removes the binding. A connection that is off cannot be bound.
 
 ### `DELETE /v1/api-keys/{id}`
 

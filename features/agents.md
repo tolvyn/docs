@@ -238,7 +238,13 @@ The pre-flight cost estimate is applied to agent budgets as well — the request
 Every proxied request stores two values: `agent_id`, the agent it is attributed to (the
 agent bound to the API key, or else the `X-Tolvyn-Agent` header), and `agent_name`, the header
 as sent. On a key with a bound agent, a different header is ignored and not stored: the request is
-flagged `attribution_conflict` and you are alerted. Budgets, the kill switch and the Agents page use `agent_id`. View them:
+flagged `attribution_conflict` and you are alerted. Budgets, the kill switch and the Agents page use `agent_id`.
+
+To bind an agent to a key, choose it when you create the key: on the **API Keys** page (the **Agent** field), or with
+`agent_id` in `POST /v1/api-keys`. The page shows each key's agent. The binding is fixed for the key's life: to change
+it, create a new key and revoke the old one.
+
+View them:
 
 - **Dashboard:** **Agents** shows requests, share and cost per agent over 7, 30 or 90 days. Requests
   with no agent appear as `(unattributed)`, and those whose agent was cleared when they passed your
