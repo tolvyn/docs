@@ -1076,7 +1076,7 @@ A `heartbeat` event is emitted every 15 seconds so intermediate proxies do not c
 
 ## Proxy
 
-Proxy endpoints accept the full OpenAI / Anthropic / Google / DeepSeek API on the corresponding path prefix.
+Proxy endpoints accept the OpenAI, Anthropic and DeepSeek APIs on the corresponding path prefix, and Google's native Gemini API. Gemini's OpenAI-compatible endpoint is not supported: see [`/v1/proxy/google/*`](#v1proxygoogle).
 
 ### `/v1/proxy/openai/*`
 
@@ -1101,7 +1101,16 @@ curl https://proxy.tolvyn.io/v1/proxy/anthropic/v1/messages \
 
 ### `/v1/proxy/google/*`
 
-Same pattern. The TOLVYN API key may be passed as `Authorization: Bearer` or `x-goog-api-key`.
+Proxies Google's **native** Gemini API: `/v1beta/models/<model>:generateContent`, `:streamGenerateContent`, `:embedContent` and `:batchEmbedContents`. The TOLVYN API key may be passed as `Authorization: Bearer` or `x-goog-api-key`. TOLVYN sends your Google key to Google in `x-goog-api-key`; both formats Google issues, `AQ.…` and `AIza…`, work.
+
+```bash
+curl https://proxy.tolvyn.io/v1/proxy/google/v1beta/models/gemini-3.1-flash-lite:generateContent \
+  -H "x-goog-api-key: tlv_live_..." \
+  -H "Content-Type: application/json" \
+  -d '{"contents":[{"parts":[{"text":"Hello"}]}]}'
+```
+
+**Gemini's OpenAI-compatible endpoint is not supported.** A call to `/v1/proxy/google/v1beta/openai/...` is answered `501` with the error `endpoint_not_supported`, and nothing is sent to Google. Use the native paths above, which the Google GenAI SDKs call by default.
 
 ### `/v1/proxy/deepseek/*`
 

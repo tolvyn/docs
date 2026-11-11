@@ -188,6 +188,12 @@ To mitigate this:
 
 ---
 
+### Google Gemini (proxy mode)
+
+Use Gemini's native API through TOLVYN: point the Google GenAI SDK, or your HTTP client, at `https://proxy.tolvyn.io/v1/proxy/google` with your TOLVYN key. Gemini's OpenAI-compatible endpoint (`/v1beta/openai/...`) is not supported through TOLVYN and is answered `501`. See [the proxy reference](reference/api.md#v1proxygoogle).
+
+---
+
 ## Switching from proxy mode to SDK mode
 
 It is two lines:
