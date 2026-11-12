@@ -690,6 +690,8 @@ Paginated request log. Accepts `?limit`, `?offset`, `?status`. Returns `?format=
       "cost_microdollars": 8400,
       "cost_usd": "0.0084",
       "latency_total_ms": 412,
+      "latency_tolvyn_ms": 6,
+      "latency_provider_ms": 380,
       "status_code": 200,
       "team_id": "b3e2c8a4-...",
       "service_name": "summarizer"
@@ -705,7 +707,15 @@ Paginated request log. Accepts `?limit`, `?offset`, `?status`. Returns `?format=
 request asked for. `model_substituted` is `true` when the provider served a different model from the one requested,
 `false` when it served the same model (an alias resolving to its dated version, such as `gpt-4o` to `gpt-4o-2024-08-06`,
 is the same model), and `null` when either side is unknown, including on requests recorded before this field existed.
-The CSV export carries both as its last two columns, `requested_model` and `model_substituted`.
+The CSV export carries both, `requested_model` and `model_substituted`, after `agent_id`.
+
+**`latency_provider_ms` and `latency_tolvyn_ms` split the time to the provider's first byte.** `latency_provider_ms` runs
+from the moment the provider had your whole request until its first response byte: the provider's own time.
+`latency_tolvyn_ms` is the rest: TOLVYN's own work before the call, plus opening the connection to the provider and
+sending the request. The two add up to the time to the provider's first byte. Both are `null` when they were not
+measured, including on requests recorded before these fields existed; `null` is never shown as 0. The CSV export carries
+them as its last two columns, `latency_tolvyn_ms` and `latency_provider_ms`, and the dashboard's Requests page shows
+`latency_tolvyn_ms` as **TOLVYN time**, with the split on hover.
 
 **`cost_microdollars` is `null`, and `cost_usd` is `"unpriced"`, when TOLVYN could not read the price for a request.**
 The request was served and nothing was billed for it. It is never shown as $0. Every export of request rows writes an
@@ -741,8 +751,8 @@ Detail view for one end customer.
 
 ### `GET /v1/usage/requests/{id}`
 
-Single request with full metadata, ledger linkage, and tag map. It carries `requested_model` and `model_substituted` as
-above, and `requested_tier` and `served_tier`: the processing tier your request asked for and the tier the provider
+Single request with full metadata, ledger linkage, and tag map. It carries `requested_model`, `model_substituted`,
+`latency_tolvyn_ms` and `latency_provider_ms` as above, and `requested_tier` and `served_tier`: the processing tier your request asked for and the tier the provider
 reported serving. `served_tier` comes only from the provider's response, never from your request, and it is the tier the
 request was billed at; it is `null` when the provider reported none.
 

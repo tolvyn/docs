@@ -40,6 +40,12 @@ Yes. Tenant data is isolated at the database level using PostgreSQL row-level se
 
 Metering and ledger writes happen asynchronously, after your application already has the provider response. The proxy adds only the network hop to and from the TOLVYN server. We publish no figure for that hop: the only latency TOLVYN has measured is its own ledger-write path, not end-to-end proxy overhead, so measure it on your own traffic rather than planning around a number from us.
 
+Every request records the split for you. `latency_tolvyn_ms` is the time before the provider had your request: TOLVYN's
+own work, plus opening the connection to the provider and sending the request. `latency_provider_ms` is the provider's
+time from then to its first byte. The dashboard's Requests page shows the first as **TOLVYN time**, with both on hover,
+and the [request API](../reference/api.md#get-v1usagerequests) and CSV export return both. The first request with an API
+key in each minute also includes checking the key, which can take a few hundred milliseconds.
+
 ---
 
 ## Which AI providers can I use?
