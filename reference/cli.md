@@ -2,7 +2,7 @@
 
 The `tolvyn` CLI manages TOLVYN from the terminal — authentication, cost summaries, live request tail, kill switches, budgets, reconciliation, audit log export.
 
-Current version: **1.0.0**.
+Current version: **1.3.0**.
 
 ---
 
@@ -19,7 +19,7 @@ tolvyn version
 ```
 
 ```
-tolvyn version 1.0.0
+tolvyn version 1.3.0
 ```
 
 ---
@@ -884,7 +884,7 @@ tolvyn version
 ```
 
 ```
-tolvyn version 1.0.0
+tolvyn version 1.3.0
 ```
 
 `tolvyn --version` is equivalent.

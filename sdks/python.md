@@ -8,7 +8,7 @@
 > Go page is the one that was read against source.
 The `tolvyn` Python package wraps the official `openai`, `anthropic`, and `google-generativeai` SDKs so requests route through the TOLVYN proxy. Your existing code keeps working; you change the import and add a TOLVYN API key.
 
-Current version: **0.1.7**.
+Current version: **0.1.13**.
 
 ---
 
@@ -312,14 +312,10 @@ Fail-open is enabled by default (`fail_open=True`). When the SDK cannot reach `p
 
 ### When fail-open triggers
 
-The SDK falls back to the provider direct on any of these conditions (source: `tolvyn/_failopen.py`):
+Since 0.1.11, the SDK falls back to the provider direct only when TOLVYN was not reached, so the request cannot have been forwarded:
 
-- `httpx.ConnectError` — TCP connection refused or DNS failure
-- `httpx.ConnectTimeout` — TCP connect did not complete
-- `httpx.ReadTimeout` — proxy did not send a response in time
-- `httpx.WriteTimeout` — client could not send the request body in time
-- `httpx.RemoteProtocolError` — proxy closed connection mid-response, malformed framing
-- HTTP `503 Service Unavailable` from the proxy
+- the connection was refused, DNS failed, the TLS handshake failed, or connecting timed out (`httpx.ConnectError`, `httpx.ConnectTimeout`);
+- TOLVYN answered `503` with the header `X-Tolvyn-Unavailable: 1`, which it sends only when the request was not forwarded.
 
 A message is written to `stderr`:
 
@@ -329,11 +325,10 @@ TOLVYN proxy unreachable — routing direct to OpenAI (fail-open)
 
 ### When fail-open does NOT trigger
 
-The SDK does **not** fall back on:
-
-- Any `4xx` response (`400`, `401`, `403`, `404`, `422`, `429`) — these are real API errors and are returned to your code as-is
-- Provider errors that reach you through the proxy (e.g. OpenAI returning `400 invalid_request`)
-- `5xx` other than `503` (e.g. `500`, `502`, `504`) — these surface as `httpx.HTTPStatusError`
+- **A provider's own `503`**, passed back through TOLVYN without that header: it is returned to you. Retrying it direct would only move the call out of TOLVYN's metering.
+- **Timeouts, resets and other errors after the request was sent**: TOLVYN may already have forwarded it, and a direct retry would be a second provider call that TOLVYN never meters.
+- **Enforcement responses**: a kill switch (`451`) or a budget or quota limit (`429`).
+- **Any other `4xx` or `5xx`**: returned to your code as-is.
 
 ### Configuration
 
@@ -413,7 +408,10 @@ There is no `AsyncGoogle` class — `google-generativeai` uses a process-global 
 
 | Version | Notes |
 |---|---|
-| 0.1.7 | Current. Provider-aware fail-open — direct fallback uses the correct per-provider auth header (e.g. `x-api-key` for Anthropic) and strips any inbound TOLVYN auth so the TOLVYN key is never sent to a provider. |
+| 0.1.13 | Current. `anthropic` 1.x and later supported (the fail-open client follows whichever HTTP library the installed `anthropic` uses); examples use current model names. |
+| 0.1.11 | Fail-open fires only when TOLVYN was not reached (see [When fail-open triggers](#when-fail-open-triggers)). |
+| 0.1.8 – 0.1.10 | Earlier releases; the [changelog](https://github.com/tolvyn/tolvyn-python/blob/main/CHANGELOG.md) starts at 0.1.11. |
+| 0.1.7 | Provider-aware fail-open — direct fallback uses the correct per-provider auth header (e.g. `x-api-key` for Anthropic) and strips any inbound TOLVYN auth so the TOLVYN key is never sent to a provider. |
 | 0.1.6 | Lazy provider imports — importing one provider no longer requires the others' optional SDKs; a friendly error is raised if a needed provider package is missing. |
 | 0.1.5 | Google `UserWarning` on `fail_open=True`; multi-instance `UserWarning`. |
 | 0.1.4 | Fail-open URL composition fix; deduplicate `_build_tolvyn_headers` to `_config.py`; remove dead code. |

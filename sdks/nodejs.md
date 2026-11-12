@@ -8,7 +8,7 @@
 > Go page is the one that was read against source.
 The `tolvyn` npm package wraps the official `openai`, `@anthropic-ai/sdk`, and `@google/generative-ai` SDKs so requests route through the TOLVYN proxy. Existing application code stays the same; you change the import and add a TOLVYN API key.
 
-Current version: **1.0.8**.
+Current version: **1.0.14**.
 
 ---
 
@@ -264,24 +264,19 @@ TOLVYN proxy unreachable — routing direct to OpenAI (fail-open)
 
 ### When fail-open triggers
 
-Source: `failopen.ts` `isProxyError()`. Any of the following:
+Since 1.0.13, the SDK falls back to the provider direct only when TOLVYN was not reached, so the request cannot have been forwarded:
 
-- Node.js connection errors with `code` property:
-  - `ECONNREFUSED`
-  - `ECONNRESET`
-  - `ETIMEDOUT`
-  - `ENOTFOUND`
-  - Any code starting with `ERR_`
-- HTTP `503 Service Unavailable` from the proxy (detected on `status` or `statusCode`)
-- `fetch`-level error messages containing `ECONNREFUSED`, `ETIMEDOUT`, `fetch failed`, or `connect ECONNREFUSED`
-- `cause`-wrapped errors (Node 18+ wraps low-level errors in a parent error with `cause`) — `isProxyError` recurses into `cause`
+- the connection was refused, DNS failed, the TLS handshake failed, or connecting timed out;
+- TOLVYN answered `503` with the header `X-Tolvyn-Unavailable: 1`, which it sends only when the request was not forwarded.
+
+**Google:** the Google SDK hides the error's cause and the response headers, so the `Google` client falls back only when a fresh TCP connection to the proxy also fails; the `503` header does not apply to it.
 
 ### When fail-open does NOT trigger
 
-Source: `failopen.ts` `shouldNotFailOpen()`. The SDK does **not** fall back on:
-
-- Any `4xx` response (`400`, `401`, `403`, `404`, `422`, `429`) — real API errors propagate as-is
-- `5xx` other than `503` (`500`, `502`, `504`) — these surface to your code
+- **A provider's own `503`**, passed back through TOLVYN without that header: it is returned to you. Retrying it direct would only move the call out of TOLVYN's metering.
+- **Timeouts, resets and other errors after the request was sent**: TOLVYN may already have forwarded it, and a direct retry would be a second provider call that TOLVYN never meters.
+- **Enforcement responses**: a kill switch (`451`) or a budget or quota limit (`429`).
+- **Any other `4xx` or `5xx`**: returned to your code as-is.
 
 ### Configuration
 
@@ -384,7 +379,10 @@ TypeScript with `"module": "commonjs"` or `"node16"`/`"nodenext"` works without 
 
 | Version | Notes |
 |---|---|
-| 1.0.8 | Current. Provider-aware fail-open — direct fallback uses the correct per-provider auth header and strips inbound TOLVYN auth; Google proxy URL double-slash fix. |
+| 1.0.14 | Current. Examples use current model names. |
+| 1.0.13 | Fail-open fires only when TOLVYN was not reached (see [When fail-open triggers](#when-fail-open-triggers)); the direct request never carries an `X-Tolvyn-*` header. |
+| 1.0.9 – 1.0.12 | Earlier releases; the [changelog](https://github.com/tolvyn/tolvyn-nodejs/blob/main/CHANGELOG.md) starts at 1.0.13. |
+| 1.0.8 | Provider-aware fail-open — direct fallback uses the correct per-provider auth header and strips inbound TOLVYN auth; Google proxy URL double-slash fix. |
 | 1.0.7 | Release with rewritten README. |
 | 1.0.6 | Google fail-open functional; class renamed `TolvynGoogle` → `Google`; `@google/generative-ai` is now an optional peer dependency. |
 | 1.0.5 | Fail-open URL composition fix; deduplicate `makeFailOpenFetch` so client.ts imports from failopen.ts; trailing slash on Google proxy URL. |

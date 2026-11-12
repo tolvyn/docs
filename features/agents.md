@@ -311,7 +311,7 @@ client = OpenAI(
 )
 ```
 
-Triple-attribution: agent type + the customer the conversation is for + the actual user. All three are searchable independently. Pair with both an agent budget *and* a per-customer budget if you bill end-customers for AI usage.
+Triple-attribution: agent type + the customer the conversation is for + the actual user. All three are searchable independently. If you bill end-customers for AI usage, pair an agent budget with `X-Tolvyn-End-Customer` attribution, so each customer's share of the agent's spend is reported.
 
 ### Multiple agent versions
 

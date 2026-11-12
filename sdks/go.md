@@ -2,7 +2,7 @@
 
 The `tolvyn-go` module wraps the official `github.com/openai/openai-go`, `github.com/anthropics/anthropic-sdk-go`, and `github.com/google/generative-ai-go` clients so requests route through the TOLVYN proxy. Existing code stays the same; you change the constructor and add a TOLVYN API key.
 
-Current published tag: **v0.1.4**.
+Current published tag: **v0.1.5**.
 
 ---
 
@@ -266,31 +266,21 @@ Fail-open is enabled by default for OpenAI and Anthropic clients when `ProviderA
 
 ### When fail-open triggers
 
-Source: `tolvyn.IsProxyError()`. The SDK falls back when either:
+Since v0.1.5, the SDK falls back to the provider direct only when TOLVYN was not reached, so the request cannot have been forwarded:
 
-- `err != nil` and the error message (lower-cased) contains any of:
-  - `connection refused`
-  - `no such host`
-  - `timeout`
-  - `dial tcp`
-  - `eof`
-  - `reset by peer`
-- The response status code is `503 Service Unavailable`
+- the dial failed (refused, unreachable, or timed out while connecting), DNS failed, or the TLS handshake failed (`tolvyn.ProxyNotReached`);
+- TOLVYN answered `503` with the header `X-Tolvyn-Unavailable: 1`, which it sends only when the request was not forwarded (`tolvyn.IsTolvynUnavailable`).
+
+`tolvyn.IsProxyError` and `tolvyn.ShouldNotFailOpen` are still exported but deprecated; the transport no longer uses them.
 
 ### When fail-open does NOT trigger
 
-Source: `tolvyn.ShouldNotFailOpen()`. The SDK does **not** fall back when the status code is in `[400, 500)` excluding `503`. Real provider errors (`400`, `401`, `403`, `404`, `422`, `429`) propagate as-is.
+- **A provider's own `503`**, passed back through TOLVYN without that header: it is returned to you. Retrying it direct would only move the call out of TOLVYN's metering.
+- **Timeouts, resets and other errors after the request was sent**: TOLVYN may already have forwarded it, and a direct retry would be a second provider call that TOLVYN never meters.
+- **Enforcement responses**: a kill switch (`451`) or a budget or quota limit (`429`).
+- **Any other `4xx` or `5xx`**: returned to your code as-is.
 
-**Nor does it fall back on `500`, `502` or `504`** — and this is worth stating
-explicitly, because it is the gap most readers assume is covered. `IsProxyError`
-returns `statusCode == 503` and nothing else when there is no transport error,
-so any other 5xx surfaces to your code. A proxy returning `502` while it
-restarts is "unreachable" from your application's point of view, and fail-open
-will **not** cover it.
-
-Fail-open also does nothing at all when `ProviderAPIKey` is empty: the transport
-returns early (`if t.providerAPIKey == "" { return resp, err }`) before any of
-the checks above are reached.
+Fail-open also does nothing at all when `ProviderAPIKey` is empty: the request's error or response is returned as it is.
 
 ### Fallback URL composition
 
@@ -414,7 +404,8 @@ The Go Google sub-package is closer to OpenAI/Anthropic in shape than the Python
 
 | Version | Notes |
 |---|---|
-| v0.1.4 | Current. Provider-aware fail-open — direct fallback uses the correct per-provider auth header and strips inbound TOLVYN auth so the TOLVYN key is never sent to a provider. |
+| v0.1.5 | Current. Fail-open fires only when TOLVYN was not reached (`tolvyn.ProxyNotReached`, `tolvyn.IsTolvynUnavailable`); the direct retry replays the body, sends the provider's Host and no `X-Tolvyn-*` header; new `deepseek` package. |
+| v0.1.4 | Provider-aware fail-open — direct fallback uses the correct per-provider auth header and strips inbound TOLVYN auth so the TOLVYN key is never sent to a provider. |
 | v0.1.3 | Google fail-open transport; `Defaults()` uses `log.Fatal` instead of `panic`; trailing-slash audit. |
 | v0.1.2 | OpenAI fail-open URL fix; `Version` constant updated; `BoolPtr` removed. |
 | v0.1.1 | Renamed `FailOpen bool` → `DisableFailOpen bool` so the zero value enables fail-open by default. |

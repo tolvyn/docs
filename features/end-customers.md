@@ -165,9 +165,7 @@ Sort customers descending by `total_cost_usd` and filter to those on your free p
 
 - A polite "you'd benefit from the paid plan" outreach
 - Rate-limiting at the application level
-- A per-customer hard budget (see [Budgets](budgets.md))
-
-You can wire a hard budget against an end-customer scope to block AI for an abusive free user. The proxy will return `429 budget_exceeded` for that customer until the budget resets.
+- A hard budget on that customer's traffic: budgets are set per organization, team, service, agent or API key, not per end-customer, so give the customer's traffic its own API key (or service name) and put a hard budget on that (see [Budgets](budgets.md)). The proxy then returns `429 budget_exceeded` for it until the budget resets.
 
 ### 3. Enterprise customer reporting
 
@@ -278,7 +276,7 @@ TOLVYN never reads prompt content. Customer identifiers are the only customer da
 ## See also
 
 - [Team Insights](team-insights.md) — for per-employee attribution
-- [Budgets](budgets.md) — set hard caps per end-customer
+- [Budgets](budgets.md) — hard caps per organization, team, service, agent or API key
 - [Agents](agents.md) — for per-agent budgets and attribution
 - [API Reference: Usage](../reference/api.md#usage-and-analytics)
 - [CLI Reference: `tolvyn cost`](../reference/cli.md#tolvyn-cost)
