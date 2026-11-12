@@ -18,6 +18,16 @@ For standard requests on a priced model — streaming or non-streaming — token
 
 In every case the error is one-directional — toward under-counting — so TOLVYN never bills you for more than you used.
 
+## Gemini audio, speech and embeddings
+
+- **Audio is priced at Google's audio rates.** Google's `usageMetadata` reports how many of a request's input, cached and output tokens were audio, per modality. TOLVYN prices that audio share at the model's audio rate and the rest at its text rate, so a request that sends a voice clip is charged what Google charges for audio, not the text rate.
+- **Transcription and text-to-speech models** (for example `gemini-3.5-transcribe` and `gemini-3.8-flash-lite-tts`) are priced the same way: their input and output are audio on one side, at the rates Google lists for them.
+- **A model with a single listed rate uses it for every modality.** Where Google lists no separate audio rate for a model, its audio tokens are priced at its text rate.
+- **Embeddings are priced on input only.** An embedding produces no output tokens, so none are estimated. Google reports no usage for embedding calls, so the input is counted from the text you send (never from the JSON around it or from encoded media).
+- **Images or video in a `gemini-embedding-2` request are flagged, not guessed.** Their tokens have no published per-token rate, so the request's cost covers its text and is marked **partly priced** (the tag `partly_priced: embedding_media`), and the media is charged to your budgets at the highest rate any Google model can bill, so a budget is never under-protected by it.
+- **Inline audio is estimated by its duration before the call.** A budget reserves money before the request is sent. For audio sent inline, TOLVYN reads the clip's length and counts 25 tokens a second, as Google does, rather than counting the encoded bytes. This estimate only sizes the reservation: the recorded cost always comes from Google's own counts. An audio file passed by reference (`file_data`) has no length TOLVYN can read before the call, so its reservation is smaller; its recorded cost is still exact.
+- **What each request records.** `modality` is what Google reported the request carried: `text`, or the non-text modalities joined by `+` in the order audio, image, video, document (for example `audio` or `audio+image`); it is part of the [ledger record](ledger.md). Alongside the input, cached and output token counts, each request also keeps their audio share, in `tokens_audio_input`, `tokens_audio_cached` and `tokens_audio_output`; each is a part of its total, never more.
+
 ## Reconciliation is the backstop
 
 Upload your provider invoices and TOLVYN reconciles its metered spend against them, surfacing any drift. See [Reconciliation](reconciliation.md).

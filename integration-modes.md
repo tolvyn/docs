@@ -192,6 +192,76 @@ To mitigate this:
 
 Use Gemini's native API through TOLVYN: point the Google GenAI SDK, or your HTTP client, at `https://proxy.tolvyn.io/v1/proxy/google` with your TOLVYN key. Gemini's OpenAI-compatible endpoint (`/v1beta/openai/...`) is not supported through TOLVYN and is answered `501`. So is the Files API upload (`client.files.upload()`): upload the file with your Google key directly, then pass its URI (`file_data`) in a request through TOLVYN, which is metered. See [the proxy reference](reference/api.md#proxy).
 
+With Google's current Python SDK, `google-genai`, set the base URL and API version once, on the client:
+
+```python
+from google import genai
+from google.genai import types
+
+client = genai.Client(
+    api_key="tlv_live_...",  # your TOLVYN key, never your Gemini key
+    http_options=types.HttpOptions(
+        base_url="https://proxy.tolvyn.io/v1/proxy/google",
+        api_version="v1beta",
+        headers={  # tags for every call this client makes
+            "X-Tolvyn-Team": "engineering",
+            "X-Tolvyn-Service": "support-bot",
+        },
+    ),
+)
+
+response = client.models.generate_content(
+    model="gemini-3.1-flash-lite",
+    contents="Hello",
+    config=types.GenerateContentConfig(
+        # tags for this call only, added to the client's
+        http_options=types.HttpOptions(headers={"X-Tolvyn-Feature": "greeting"}),
+    ),
+)
+print(response.text)
+```
+
+- `api_key` is your **TOLVYN key**. The SDK sends it in `x-goog-api-key`, which TOLVYN reads as your TOLVYN key; your Gemini key stays in TOLVYN's Connections and never goes in your code.
+- Headers set on the client go with every call; headers set on a call are added to them.
+
+### Adding your own fallback
+
+Proxy mode has no automatic fallback (see above). If a Gemini call must still be answered while TOLVYN is unavailable, wrap the call yourself and fall back to Google directly:
+
+```python
+import os
+
+from google import genai
+from google.genai import errors, types
+
+client = genai.Client(  # through TOLVYN, as above
+    api_key="tlv_live_...",
+    http_options=types.HttpOptions(base_url="https://proxy.tolvyn.io/v1/proxy/google", api_version="v1beta"),
+)
+google_direct = genai.Client(api_key=os.environ["GEMINI_API_KEY"])  # your Gemini key, used only for the fallback
+
+
+def generate(**kwargs):
+    try:
+        return client.models.generate_content(**kwargs)
+    except errors.APIError as e:
+        if e.code != 503 or e.response is None or e.response.headers.get("x-tolvyn-unavailable") != "1":
+            raise  # Google's own errors, and TOLVYN's 429 and 451
+        return google_direct.models.generate_content(**kwargs)  # TOLVYN itself was unavailable
+    except Exception:
+        return google_direct.models.generate_content(**kwargs)  # the proxy could not be reached
+
+
+response = generate(model="gemini-3.1-flash-lite", contents="Hello")
+print(response.text)
+```
+
+- **It falls back only when TOLVYN itself is unavailable:** the proxy cannot be reached at all, or it answers `503` with the header `X-Tolvyn-Unavailable: 1`. TOLVYN sends that header only when its own service could not take the call, so the call never reached Google.
+- **It raises every other error, including Google's own `503`.** When Google is overloaded, TOLVYN passes Google's `503` through unchanged, without the header. Calling Google directly would hit the same overloaded service, so the error is raised to your code as before.
+- **It never falls back on `429` (a budget or quota limit) or `451` (a kill switch).** Those are TOLVYN doing its job; falling back would spend the money the limit was set to stop.
+- **Fallback calls are not metered.** A call answered by `google_direct` does not pass through TOLVYN: it is not budget-checked, not attributed and not in your ledger, and the dashboard shows no row for it.
+- A call that times out also falls back. If the slow call had already reached Google, it may run twice.
+
 ---
 
 ## Switching from proxy mode to SDK mode

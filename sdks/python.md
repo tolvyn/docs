@@ -165,6 +165,39 @@ Anthropic(
 
 ## Google
 
+### Google's current SDK, `google-genai` (proxy mode)
+
+The TOLVYN SDK has no wrapper for `google-genai`; use it in proxy mode. Point the client at TOLVYN and pass your **TOLVYN key** as `api_key`, never your Gemini key:
+
+```python
+from google import genai
+from google.genai import types
+
+client = genai.Client(
+    api_key="tlv_live_...",  # your TOLVYN key
+    http_options=types.HttpOptions(
+        base_url="https://proxy.tolvyn.io/v1/proxy/google",
+        api_version="v1beta",
+        headers={"X-Tolvyn-Team": "engineering", "X-Tolvyn-Service": "support-bot"},  # every call
+    ),
+)
+
+response = client.models.generate_content(
+    model="gemini-3.1-flash-lite",
+    contents="Hello",
+    config=types.GenerateContentConfig(
+        http_options=types.HttpOptions(headers={"X-Tolvyn-Feature": "greeting"}),  # this call, added to the above
+    ),
+)
+print(response.text)
+```
+
+Proxy mode has no automatic fallback; to add your own, see [Integration Modes → Adding your own fallback](../integration-modes.md#adding-your-own-fallback). The Files API upload is not supported through TOLVYN; see [Google Gemini (proxy mode)](../integration-modes.md#google-gemini-proxy-mode).
+
+### The older SDK, `google-generativeai`
+
+The `Google` class below wraps Google's older SDK, `google-generativeai`.
+
 ```python
 from tolvyn import Google
 
