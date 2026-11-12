@@ -267,7 +267,7 @@ requires no secret.
   number and the next record takes the one it would have used. There is no gap for verification to
   find. A verified chain therefore proves that the records you hold are intact and consecutive; it
   does not prove that a record was written for every request you were billed for.
-- **That attribution is kept forever.** Records are; the attribution fields on old requests are
+- **Attribution is not kept indefinitely.** Ledger records are kept; the attribution fields on old requests are
   redacted at the plan's window — see [Retention and the verified
   range](#retention-and-the-verified-range).
 
@@ -284,7 +284,7 @@ retention window, and a nightly pass **redacts** requests older than that window
 | Starter | 30 days |
 | Growth | 90 days |
 | Scale | 365 days |
-| Enterprise | Unlimited |
+| Enterprise | Set by contract |
 
 What redaction clears on a request past its window: `tolvyn_user`, `tolvyn_end_customer`,
 `agent_name`, `feature_tag`, `service_name`, `team_id`, and `tags` — the attribution dimensions —
@@ -334,7 +334,7 @@ ledger CSV export is available from **Starter** up, and signed evidence packages
 
 ### Audit evidence
 
-For an external auditor (SOC 2, ISO 27001, financial audit): on Scale and Enterprise, give them a
+For your own external audit (for example SOC 2, ISO 27001 or a financial audit): on Scale and Enterprise, give the auditor a
 signed [evidence package](evidence-packages.md). It bundles the records, a signed manifest and a
 standalone verifier, so the auditor verifies independently, without trusting your dashboard. On other
 plans, the ledger CSV shows the chain links for the period, and `GET /v1/ledger/verify` reports the

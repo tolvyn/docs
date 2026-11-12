@@ -79,7 +79,7 @@ When the SDK cannot reach `proxy.tolvyn.io` (connection refused, DNS or TLS fail
 4. The request is **not** metered in TOLVYN for that call (it bypassed the proxy)
 5. You may see a slightly higher latency on that one request (one retry)
 
-This means that in SDK mode a TOLVYN outage does not have to take your application down with it — within the limits above. It is not a guarantee that TOLVYN is never in your critical path: the fallback needs a provider key you configured, it does not cover every failure mode, and while it is in effect you are running without metering, budgets or the ledger.
+This means that in SDK mode a TOLVYN outage does not have to take your application down with it — within the limits above. It does not take TOLVYN out of your critical path entirely: the fallback needs a provider key you configured, it does not cover every failure mode, and while it is in effect you are running without metering, budgets or the ledger.
 
 ---
 
@@ -290,16 +290,17 @@ openAIApiKey: 'sk-...'            // add fallback key
 
 ---
 
-## Reliability Guarantees
+## Reliability: design targets and behaviour
 
-**What TOLVYN guarantees:**
-- Proxy latency overhead: <50ms p99
+**Design targets and how TOLVYN behaves:**
+- Latency added by the proxy: a design target of under 50 ms at p99. In our own benchmark (2,000 requests against a
+  local stub, 1 Nov 2026) it added about 5 ms at p50. No production figure is published.
 - SDK fail-open: fallback only when TOLVYN was not reached — a connection failure (refused, DNS, TLS, connect timeout) or TOLVYN's own `503` with `X-Tolvyn-Unavailable: 1`. **Not** on a provider's `503`, any other `5xx`, `429`, `451`, or a timeout after the request was sent (TOLVYN may already have forwarded it)
-- No prompt modification: TOLVYN never modifies your prompts or messages
-- No response modification: TOLVYN never modifies provider responses
-- No content storage: TOLVYN stores metadata (model, tokens, cost, latency) only — never prompt text or response content
+- No prompt modification: TOLVYN does not modify your prompts or messages
+- No response modification: TOLVYN does not modify provider responses
+- No content storage: TOLVYN stores metadata (model, tokens, cost, latency) only, not prompt text or response content
 
-**What TOLVYN does not guarantee:**
+**Outside what TOLVYN covers:**
 - Provider availability (OpenAI, Anthropic, Google, DeepSeek outages are outside TOLVYN's control)
 - Metering covers every request that reaches TOLVYN. **Fail-open requests do not reach TOLVYN and are therefore not metered** — they are not counted, not budget-checked, and not in the ledger. If the proxy is down for an hour, that hour of spend is invisible
 

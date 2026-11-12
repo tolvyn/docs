@@ -100,7 +100,7 @@ The combination of real-time cost attribution and tamper-evident storage is what
 
 ## Try it
 
-Free trial at [tolvyn.io](https://tolvyn.io).
+Start on the Free plan at [tolvyn.io](https://tolvyn.io): 10,000 requests a month, no credit card.
 
 ```bash
 pip install tolvyn

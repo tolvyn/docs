@@ -1,6 +1,6 @@
 # How TOLVYN Works
 
-A technical overview of TOLVYN's architecture, request pipeline, and guarantees.
+A technical overview of TOLVYN's architecture, request pipeline, and how it behaves when something fails.
 
 ---
 
@@ -48,7 +48,7 @@ Every request through the TOLVYN proxy follows these steps:
 8. **Meter and record** (background, fail-open) — token counts come from the provider's usage report, cost is computed, the request + ledger + budget spend + threshold alerts are written in one transaction, anomaly detection runs after, and a live event is published for `tolvyn tail`.
 9. **Return response** — the provider's response reaches your application unchanged.
 
-**Fail-open guarantee:** once the request is dispatched (step 7), any internal TOLVYN error is logged only — the provider response always reaches the caller. See [§6](#6-fail-open-behavior).
+**Fail-open by design:** once the request is dispatched (step 7), an internal TOLVYN error is logged and does not stop the provider's response from reaching the caller. See [§6](#6-fail-open-behavior).
 
 ---
 
@@ -153,6 +153,6 @@ Budget/enforcement checks are themselves fail-open: a TOLVYN-side error never bl
 | Starter | 250,000 | None (blocks at the limit) |
 | Growth | 2,000,000 | Charged per request beyond the included amount |
 | Scale | 10,000,000 | Charged per request beyond the included amount |
-| Enterprise | Effectively unlimited | Custom |
+| Enterprise | Set by contract | Custom |
 
 The Free plan needs no credit card. See [app.tolvyn.io](https://app.tolvyn.io) for current pricing and to upgrade.

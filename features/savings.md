@@ -271,7 +271,7 @@ Every dollar figure in a savings finding is an **estimate**. Sources of inaccura
 - **Pricing drift** — savings are computed at the prices in effect during the 30-day window. A pricing change mid-window can skew estimates
 - **No prompt analysis** — TOLVYN doesn't look at prompt content, so it can't tell you whether a cheaper model would actually produce acceptable output
 
-Treat findings as a hit-list to investigate, not a guaranteed savings amount.
+Treat findings as a hit-list to investigate, not as an amount you will save.
 
 ### Rolling 30-day window only
 
