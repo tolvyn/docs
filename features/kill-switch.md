@@ -12,9 +12,9 @@ Use it for incident response: a runaway agent, a leaked API key, a service in a 
 |---|---|
 | Block status | `HTTP 451` |
 | Order in proxy | First — runs before budget check |
-| State location | In-memory map + `kill_switches` table |
-| Latency | In-memory lookup, no database round-trip |
-| Persistence | Survives server restart (loaded from DB at startup) |
+| Check | Held in memory: no database round-trip per request |
+| Takes effect | Immediately on activate and lift (dashboard, API or CLI) |
+| Persistence | Survives a server restart |
 | Scope | `all`, `team`, `service`, `agent`, `api_key` |
 | Auto-deactivation | None — must be deactivated manually |
 
@@ -90,38 +90,12 @@ Status: `451 Unavailable For Legal Reasons`. For a team kill, `scope_value` is t
 
 ---
 
-## In-memory store
+## How it holds
 
-To keep the check off the database, kill switches are held in an in-memory map keyed by tenant ID. No figure is published for how long the lookup takes: nothing in this repository measures it, and a number nobody measured is worth less than the mechanism, which is that the proxy path does not query the database to decide.
-
-### Startup
-
-At server boot, `kill.Init(db)` loads every active kill switch (`deactivated_at IS NULL`) from the database into the in-memory store. The proxy does not begin serving requests until this completes.
-
-```go
-rows, err := db.Query(`
-    SELECT id::text, tenant_id::text, scope_type, scope_value,
-           COALESCE(reason,''), activated_at
-    FROM kill_switches
-    WHERE deactivated_at IS NULL`)
-```
-
-### Live updates
-
-The API handlers keep memory and DB in sync:
-
-- `POST /v1/kill` → DB insert, then `kill.Store.Activate(tenantID, entry)` adds to memory
-- `DELETE /v1/kill/{id}` → DB update (`deactivated_at = now()`), then `kill.Store.Deactivate(tenantID, killID)` removes from memory
-
-### Restart behavior
-
-Active kill switches **survive a server restart** because they are loaded from the DB at startup. Activations applied while the server was down (e.g. via direct SQL) are also picked up.
-
-### Reconciliation loop
-
-The store reloads from the database every 60 seconds, so kill switches inserted directly via SQL (or restored from backup, or activated on a replica) eventually re-sync without a server restart. Worst-case staleness window is 60 seconds.
-
-For tighter consistency, prefer the API — the in-memory store is updated synchronously on every activate / deactivate call (`POST /v1/kill` and `DELETE /v1/kill/{id}`). The reconciliation loop is a safety net, not the primary sync mechanism.
+- **No database round-trip per request.** Active kill switches are held in memory, so the proxy decides without querying the database. No figure is published for how long the check takes; the point is the mechanism.
+- **Immediate.** Activating or lifting a kill switch from the dashboard, the API or the CLI takes effect for the next request.
+- **Survives a restart.** Active kill switches are stored durably and loaded again when the server starts. If that load fails, the server keeps serving (refusing to start would take every call down), logs it as an incident, and retries at once and then every 60 seconds until the load succeeds.
+- **Reloaded every 60 seconds** as a safety net, so the proxy's view does not lag the stored state by more than 60 seconds.
 
 ---
 
@@ -255,9 +229,9 @@ curl -X DELETE https://api.tolvyn.io/v1/kill/<kill-id> \
   -H "Authorization: Bearer <jwt>"
 ```
 
-Returns `204 No Content`. An id that is not a full kill switch id is refused with `400 invalid_kill_id` and nothing is lifted; a full id that is unknown or already lifted is `404 not_found`. The DB row is updated with `deactivated_at = now()` and `deactivated_by = <tenant id>` for audit. The row is not deleted — kill history is permanent.
+Returns `204 No Content`. An id that is not a full kill switch id is refused with `400 invalid_kill_id` and nothing is lifted; a full id that is unknown or already lifted is `404 not_found`. The kill switch is marked as lifted, with when and by whom, for the audit trail; it is not deleted — kill history is permanent.
 
-The in-memory store is updated synchronously with the DB so subsequent requests stop receiving 451 within milliseconds.
+The lift takes effect for the next request: it stops receiving 451.
 
 ---
 
@@ -270,12 +244,11 @@ The in-memory store is updated synchronously with the DB so subsequent requests 
 | HTTP status | `451 Unavailable For Legal Reasons` | `429 Too Many Requests` |
 | Error code | `kill_switch_active` | `budget_exceeded` |
 | Order in proxy | First | After the kill-switch check |
-| State | In-memory + DB | DB only (read per request) |
-| Latency | Sub-ms | Single SELECT per request |
+| Check | In memory, no database round-trip | Reads the running total per request |
 | Auto-reset | Never | On period rollover |
 | Use case | Incident response | Long-term cost control |
 | Limit per tenant | 10 active | No limit |
-| Survives server restart | Yes (loaded at startup) | Yes (DB-backed) |
+| Survives server restart | Yes | Yes |
 
 Both can be active simultaneously and they answer different questions: "should this request happen *at all*?" (kill) vs. "have we spent too much?" (budget).
 

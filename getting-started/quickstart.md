@@ -181,11 +181,13 @@ curl https://proxy.tolvyn.io/v1/proxy/openai/v1/chat/completions \
 > using that key. **Without the provider key there is no fallback at all** — the
 > key is required for this behaviour, not merely recommended.
 >
-> **What fail-open covers, precisely** (verified in the Go SDK; see
-> [Fail-open behavior](../sdks/go.md#fail-open-behavior)): connection refused,
-> DNS failure, timeout, EOF, connection reset, and **HTTP 503**. It does **not**
-> cover `500`, `502` or `504` — those propagate to your code as errors. It does
-> not cover 4xx, which are real API errors and should not be retried.
+> **What fail-open covers, precisely** (see
+> [Fail-open behavior](../sdks/go.md#fail-open-behavior)): only the cases where
+> TOLVYN was not reached, so the request cannot have been forwarded — connection
+> refused, DNS or TLS failure, a connect timeout, or TOLVYN's own `503` with the
+> header `X-Tolvyn-Unavailable: 1`. It does **not** cover a provider's `503`,
+> any other `5xx`, a timeout or reset after the request was sent, or a 4xx
+> (including `429` and `451`) — those propagate to your code as errors.
 >
 > **A fallen-back request is not metered.** It goes straight to the provider,
 > its `X-Tolvyn-*` attribution headers are stripped, and no row appears in your
@@ -276,9 +278,9 @@ You now have a working metered request. The next things to set up depend on your
 
 **Request returns 400 with `unknown_provider`** — the provider segment in the URL is not one of `openai`, `anthropic`, `google`, `deepseek` or `custom`.
 
-**Request returns 503** — TOLVYN proxy is unreachable. In SDK mode this triggers the fail-open path, if a provider key is configured: the request continues directly to the provider but is **not metered**. In proxy mode the request fails.
+**Request returns 503 with `X-Tolvyn-Unavailable: 1`** — TOLVYN itself was unavailable and did not forward the request. In SDK mode this triggers the fail-open path, if a provider key is configured: the request continues directly to the provider but is **not metered**. In proxy mode the request fails.
 
-**Request returns 500, 502 or 504** — these do **not** trigger fail-open. The SDK surfaces them to your code. Only connection-level failures and `503` fall back.
+**Request returns 503 without that header, or 500, 502 or 504** — these do **not** trigger fail-open. A `503` without the header is the provider's own, passed through. The SDK surfaces them to your code. Only connection failures and TOLVYN's own `503` fall back.
 
 **Request succeeds but does not appear in the dashboard** — the SDK fell back direct to the provider. Check your network can reach `proxy.tolvyn.io` and that you set `tolvyn_api_key` (not `openai_api_key`) as the TOLVYN key.
 

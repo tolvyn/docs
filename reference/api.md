@@ -1238,7 +1238,7 @@ DeepSeek may answer as a different model name than the one you sent (for example
 | `409 provider_credentials_missing` | No provider key is configured for the requested provider. Add one on the **Providers** page, then send the request again |
 | `429 budget_exceeded` | A hard budget would be exceeded by this request |
 | `451 kill_switch_active` | A kill switch is active for the request's scope |
-| `503 Service Unavailable` | Proxy unreachable — SDK fail-open path triggers on this |
+| `503 tolvyn_unavailable` | TOLVYN was unavailable and did not forward the request; sent with the header `X-Tolvyn-Unavailable: 1`. The SDKs' fail-open triggers on this (a provider's own `503` comes without the header and does not) |
 
 All other responses pass through from the provider unchanged.
 

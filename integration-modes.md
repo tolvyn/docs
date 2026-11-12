@@ -8,7 +8,7 @@ TOLVYN offers two integration modes. Pick one based on your reliability requirem
 |------------|----------|------------|
 | Setup | Install `tolvyn` package | Set `OPENAI_BASE_URL` env var |
 | Languages | Python, Node.js, Go | Any |
-| Fail-open (auto-fallback to provider direct) | ✅ Yes — **requires a provider key**; covers connection failures and `503`, not `500`/`502`/`504` | ❌ No — request fails if TOLVYN is unreachable |
+| Fail-open (auto-fallback to provider direct) | ✅ Yes — **requires a provider key**; only when TOLVYN was not reached (connection failure, or TOLVYN's own `503`) | ❌ No — request fails if TOLVYN is unreachable |
 | Latency overhead | <50ms | <50ms |
 | TOLVYN in critical path | No (fails open) | Yes |
 | Recommended for | Production workloads | Prototyping, internal tools, non-critical batch |
@@ -21,7 +21,7 @@ TOLVYN offers two integration modes. Pick one based on your reliability requirem
 
 SDK mode wraps the OpenAI or Anthropic SDK. Install the `tolvyn` package, change the import, and use a TOLVYN key — and register your provider key with TOLVYN first, or the proxy has no credential to call the provider with. Your call sites are unchanged.
 
-The key advantage: **if TOLVYN is unreachable, the SDK retries the request directly to OpenAI or Anthropic — provided you configured a provider key.** The fallback is narrower than it sounds and the limits are listed below: it covers a connection failure, a timeout or a `503`, and **not** a `500`, `502` or `504`, and a hung proxy can take as long as the transport's timeout before the fallback starts. A request that falls back never reaches TOLVYN, so it is not metered, not budget-checked and not in the ledger.
+The key advantage: **if TOLVYN is unreachable, the SDK retries the request directly to OpenAI or Anthropic — provided you configured a provider key.** The fallback is narrower than it sounds and the limits are listed below: it covers only the cases where TOLVYN was not reached, so the request cannot have been forwarded — the connection was refused, DNS or the TLS handshake failed, connecting timed out, or TOLVYN answered `503` with the header `X-Tolvyn-Unavailable: 1`. It does **not** cover a provider's own `503`, any other `5xx`, or a timeout after the request was sent. A request that falls back never reaches TOLVYN, so it is not metered, not budget-checked and not in the ledger.
 
 ### Python
 
@@ -71,7 +71,7 @@ const response = await client.chat.completions.create({
 
 ### What happens when TOLVYN is down?
 
-When the SDK cannot reach `proxy.tolvyn.io` (connection refused, timeout, or HTTP 503):
+When the SDK cannot reach `proxy.tolvyn.io` (connection refused, DNS or TLS failure, connect timeout), or TOLVYN answers `503` with `X-Tolvyn-Unavailable: 1`:
 
 1. SDK detects the failure automatically — no error is thrown to your code
 2. SDK retries the request directly to `api.openai.com` using your `openai_api_key`
@@ -294,7 +294,7 @@ openAIApiKey: 'sk-...'            // add fallback key
 
 **What TOLVYN guarantees:**
 - Proxy latency overhead: <50ms p99
-- SDK fail-open: fallback on connection failure, timeout or `503`. **Not** on `500`, `502` or `504`. The delay is whatever the underlying transport takes to fail — the Go SDK sets a 30s `ResponseHeaderTimeout`, so a hung proxy can take that long before the fallback starts
+- SDK fail-open: fallback only when TOLVYN was not reached — a connection failure (refused, DNS, TLS, connect timeout) or TOLVYN's own `503` with `X-Tolvyn-Unavailable: 1`. **Not** on a provider's `503`, any other `5xx`, `429`, `451`, or a timeout after the request was sent (TOLVYN may already have forwarded it)
 - No prompt modification: TOLVYN never modifies your prompts or messages
 - No response modification: TOLVYN never modifies provider responses
 - No content storage: TOLVYN stores metadata (model, tokens, cost, latency) only — never prompt text or response content

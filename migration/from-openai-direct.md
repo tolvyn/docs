@@ -115,9 +115,9 @@ No configuration required. The dashboard is live the moment the first request go
 
 ---
 
-## Fail-open guarantee
+## If TOLVYN is unavailable
 
-If TOLVYN ever has an issue, requests automatically pass through to OpenAI. Your application never goes down because of TOLVYN. This is by design — TOLVYN is in your request path for observability, not for availability.
+The setup above is proxy mode: every call goes through TOLVYN, and there is no automatic fallback. If TOLVYN cannot be reached, the call fails. For an automatic fallback to OpenAI direct, use the `tolvyn` SDK with your OpenAI key (SDK mode); it falls back only when TOLVYN was not reached, and a call that falls back is not metered. See [Integration Modes](../integration-modes.md).
 
 ---
 

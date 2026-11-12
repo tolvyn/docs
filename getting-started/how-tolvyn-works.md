@@ -116,7 +116,7 @@ Cost, budgets and kill switches all use the recorded values, so a header cannot 
 
 Both SDKs ship with fail-open enabled by default (`fail_open=True` / `failOpen: true`), but it is **inert without a provider key** — with no key there is no fallback.
 
-When fail-open is active and the TOLVYN proxy is unreachable (connection/DNS error, timeout, or HTTP 503 — **not** 500, 502 or 504), the SDK retries the request **directly against the provider** using your provider key. The request succeeds but is **not** metered, governed, or logged by TOLVYN for that call.
+When fail-open is active and the TOLVYN proxy is unreachable (connection refused, DNS or TLS failure, a connect timeout, or TOLVYN's own `503` with `X-Tolvyn-Unavailable: 1` — **not** a provider's `503`, any other `5xx`, or a timeout after the request was sent), the SDK retries the request **directly against the provider** using your provider key. The request succeeds but is **not** metered, governed, or logged by TOLVYN for that call.
 
 - HTTP **4xx** responses from the proxy (e.g. 401, 429, 451) are **not** retried — they are intentional governance decisions, not outages.
 - **Proxy mode** (no SDK) has no automatic fallback — if the proxy is unreachable, the call fails. Add your own retry or use SDK mode for critical paths.
