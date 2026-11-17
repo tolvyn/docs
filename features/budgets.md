@@ -58,7 +58,7 @@ When `mode = "hard"`, requests are rejected at the proxy **before the provider i
 
 ### How the check works (reservation-based pre-pay)
 
-TOLVYN **estimates the cost of each request before sending it to the provider**. Input tokens are estimated from the request body size; output tokens use the `max_tokens` field from the request body, or `1000` if not set.
+TOLVYN **estimates the cost of each request before sending it to the provider**. Input tokens are estimated from the request body size; output tokens use the `max_tokens` field from the request body, or `1000` if not set. A `max_tokens` above 2,147,483,647 is estimated at 2,147,483,647.
 
 Rather than comparing against the (lagging) recorded `current_spend`, the proxy **reserves** the estimate against the budget for the duration of the provider call, under a per-budget row lock. Concretely, for each hard budget it atomically:
 

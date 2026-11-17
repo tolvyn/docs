@@ -416,7 +416,7 @@ All require JWT.
 |---|---|---|---|
 | `name` | string | yes | Human label |
 | `environment` | string | no | `production` (default) or `test` — controls `tlv_live_` vs `tlv_test_` prefix |
-| `team_id` | string | no | Scope the key to a team |
+| `team_id` | string | no | Scope the key to a team. It must be one of this account's teams; otherwise `400 invalid_team_id` |
 | `service_name` | string | no | Scope the key to a service |
 | `agent_id` | string | no | The agent every request made with this key is recorded under (1-100 characters). **Fixed for the key's life**: to change it, create a new key and revoke this one |
 
@@ -1243,8 +1243,11 @@ DeepSeek may answer as a different model name than the one you sent (for example
 
 | Status | Meaning |
 |---|---|
+| `400 invalid_model_name` | The request's model name contains a NUL character or is not valid UTF-8. TOLVYN refused it before calling the provider |
+| `400 model_name_too_long` | The request's model name is longer than 100 characters. TOLVYN refused it before calling the provider |
 | `401 missing_auth` | No TOLVYN key was sent |
 | `401 invalid_key` | The TOLVYN key is invalid or revoked |
+| `403 key_team_not_in_account` | The key is bound to a team that is not one of this account's teams. TOLVYN refused the request before calling the provider; create a new key bound to one of this account's teams, or with no team |
 | `409 provider_credentials_missing` | No provider key is configured for the requested provider. Add one on the **Providers** page, then send the request again |
 | `429 budget_exceeded` | A hard budget would be exceeded by this request |
 | `451 kill_switch_active` | A kill switch is active for the request's scope |

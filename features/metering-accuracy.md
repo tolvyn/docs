@@ -11,6 +11,10 @@ How TOLVYN measures cost — where it's exact, where it's approximate, and which
 
 For standard requests on a priced model — streaming or non-streaming — token counts come directly from the provider's own usage report, so the recorded cost is exact to the microdollar.
 
+## A usage report TOLVYN does not use
+
+A usage count a gateway reports below 0 or above 2,147,483,647 is not used: the call is estimated from the request and the answer, marked estimated and tagged `usage_out_of_range`. A model name in a gateway's answer that cannot be stored (longer than 100 characters, or containing a NUL character) is not used either: the request's model is recorded and the row is tagged `model_name_out_of_range`. Any other text from a request or an answer that cannot be stored — too long for its field, a NUL character, or invalid UTF-8, such as an attribution header or a `service_tier` — is left empty, and the row is tagged `text_out_of_range` with the names of those fields. In each of these cases the request is still recorded.
+
 ## Where it currently under-counts (never over-charges)
 
 - **1-hour cache writes** and **>200k long-context** requests are billed at the **base rate** today. Providers charge a premium for these tiers; TOLVYN has the premium rates staged but **not yet switched on in production**, so these specific usages are slightly under-counted until they are. (When enabled, they only ever *raise* the recorded cost toward the true rate.)
