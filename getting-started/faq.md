@@ -57,7 +57,7 @@ counted: image models `gemini-nano-banana-2.1`, `gemini-3.1-flash-image`,
 `gemini-3.1-flash-lite-image`, `gemini-3-pro-image` and `gemini-2.5-flash-image`, and
 embedding models `gemini-embedding-2` and `gemini-embedding-001`.
 
-For a provider not yet supported, use that provider's SDK directly and email founder@tolvyn.io to request it.
+For a provider not yet supported, use that provider's SDK directly and email sales@tolvyn.io to request it.
 
 ---
 

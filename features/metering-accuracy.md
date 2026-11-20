@@ -15,6 +15,10 @@ For standard requests on a priced model — streaming or non-streaming — token
 
 A usage count a gateway reports below 0 or above 2,147,483,647 is not used: the call is estimated from the request and the answer, marked estimated and tagged `usage_out_of_range`. A model name in a gateway's answer that cannot be stored (longer than 100 characters, or containing a NUL character) is not used either: the request's model is recorded and the row is tagged `model_name_out_of_range`. Any other text from a request or an answer that cannot be stored — too long for its field, a NUL character, or invalid UTF-8, such as an attribution header or a `service_tier` — is left empty, and the row is tagged `text_out_of_range` with the names of those fields. In each of these cases the request is still recorded.
 
+## Very large answers
+
+Every answer is passed to you whole and unchanged, whatever its size. For metering, TOLVYN keeps the first and the last megabyte of an answer; an answer of 2 MB or less is metered whole. For a larger answer, the counts come from the provider's usage report in those parts, which is where OpenAI, Anthropic, Google and DeepSeek put it, and the request is tagged `answer_over_limit` with the answer's size in bytes. When the usage report is not in those parts, the request is still recorded: its counts are estimated from the request and from the answer's size, marked estimated, and tagged the same way. An estimate can be above or below what the provider counts.
+
 ## Where it currently under-counts (never over-charges)
 
 - **1-hour cache writes** and **>200k long-context** requests are billed at the **base rate** today. Providers charge a premium for these tiers; TOLVYN has the premium rates staged but **not yet switched on in production**, so these specific usages are slightly under-counted until they are. (When enabled, they only ever *raise* the recorded cost toward the true rate.)

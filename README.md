@@ -45,4 +45,4 @@ Full walkthrough: [Quickstart](getting-started/quickstart.md).
 
 ## Need help?
 
-Email [founder@tolvyn.io](mailto:founder@tolvyn.io).
+Email [support@tolvyn.io](mailto:support@tolvyn.io).

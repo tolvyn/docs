@@ -284,4 +284,4 @@ You now have a working metered request. The next things to set up depend on your
 
 **Request succeeds but does not appear in the dashboard** — the SDK fell back direct to the provider. Check your network can reach `proxy.tolvyn.io` and that you set `tolvyn_api_key` (not `openai_api_key`) as the TOLVYN key.
 
-Email [founder@tolvyn.io](mailto:founder@tolvyn.io) if anything else looks wrong.
+Email [support@tolvyn.io](mailto:support@tolvyn.io) if anything else looks wrong.

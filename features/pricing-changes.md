@@ -226,7 +226,7 @@ Each model file declares the canonical name, family, modality, context window, a
 
 ### How to contribute
 
-This repository is published from TOLVYN's catalogue, so corrections do not come by pull request. If a price is wrong or a model is missing, open an issue on the repository or email founder@tolvyn.io, with the model ID and a link to the provider's pricing page. We fix the catalogue, and the next daily sync publishes it.
+This repository is published from TOLVYN's catalogue, so corrections do not come by pull request. If a price is wrong or a model is missing, open an issue on the repository or email support@tolvyn.io, with the model ID and a link to the provider's pricing page. We fix the catalogue, and the next daily sync publishes it.
 
 ---
 

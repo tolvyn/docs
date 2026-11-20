@@ -439,6 +439,8 @@ curl -X POST https://api.tolvyn.io/v1/api-keys \
 
 The full `key` is shown **once**. The server stores `prefix` and a hash; recovery is not possible.
 
+Creating a key needs the admin or owner role (`403 insufficient_role` otherwise). Each account can create 10 keys a minute; the next is answered `429 rate_limited` with a `Retry-After` header in seconds.
+
 ### `GET /v1/api-keys`
 
 Lists keys without revealing key material.
@@ -1183,6 +1185,10 @@ A `heartbeat` event is emitted every 15 seconds so intermediate proxies do not c
 ## Proxy
 
 Proxy endpoints accept the OpenAI, Anthropic and DeepSeek APIs on the corresponding path prefix, and Google's native Gemini API. Gemini's OpenAI-compatible endpoint is not supported: see `/v1/proxy/google/*` below.
+
+### Limits per account
+
+Each account can have 8 proxy calls open at once on the Free plan and 32 on every paid plan, and can start 600 proxy calls a minute on any plan. A minute is a fixed one-minute window that starts with the account's first call in it, and a call refused for open calls counts toward its 600. A call over either limit is answered `429` before it reaches the provider, with a `Retry-After` header in seconds and the error `too_many_open_calls` or `rate_limited`; it is not sent, not metered and costs nothing. All of the account's keys share these limits. If your traffic needs more, write to sales@tolvyn.io.
 
 ### `/v1/proxy/openai/*`
 
