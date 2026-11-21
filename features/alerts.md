@@ -205,19 +205,9 @@ Every alert is inserted into the `alerts` table. The dashboard `/alerts` page po
 
 ### Email
 
-If the server has SMTP configured, emails go to the tenant's `email` address. SMTP environment variables:
-
-| Variable | Required | Description |
-|---|---|---|
-| `TOLVYN_SMTP_HOST` | yes | SMTP server hostname |
-| `TOLVYN_SMTP_PORT` | yes | `587` (STARTTLS) or `465` (implicit TLS / SMTPS) |
-| `TOLVYN_SMTP_USER` | no | Username for PLAIN auth (omit for anonymous relay) |
-| `TOLVYN_SMTP_PASS` | no | Password for PLAIN auth |
-| `TOLVYN_ALERT_FROM_EMAIL` | yes | `From:` address |
-
-**Port 465 uses implicit TLS** (TLS at connect time). All other ports (typically `587`) use STARTTLS via `smtp.SendMail`.
-
-**Graceful degradation:** if `TOLVYN_SMTP_HOST`, `TOLVYN_SMTP_PORT`, or `TOLVYN_ALERT_FROM_EMAIL` is missing, the email sender logs the message to stdout instead of sending — it never panics, returns an error, or blocks the caller. This lets the server run in development without SMTP configured.
+If the server has SMTP configured, emails go to the tenant's `email` address. Alert emails come **from
+alerts@tolvyn.io**, and a reply goes to **support@tolvyn.io**. Every email TOLVYN sends, and where its replies go, is
+listed in [Emails from TOLVYN](emails.md).
 
 Email send happens **in a goroutine** after the alert is inserted. Email failures do not roll back the alert insert or affect the proxied request.
 

@@ -20,6 +20,7 @@
 * [Budgets & Enforcement](features/budgets.md)
 * [Spend Quotas](features/spend-quotas.md)
 * [Alerts](features/alerts.md)
+* [Emails from TOLVYN](features/emails.md)
 * [Webhooks](features/webhooks.md)
 * [Kill Switch](features/kill-switch.md)
 * [Events](features/events.md)
